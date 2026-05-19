@@ -63,130 +63,167 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex transition-colors duration-300">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex transition-colors duration-300 overflow-x-hidden">
       {/* Sidebar - Desktop */}
-      <aside className={cn(
-        "hidden lg:flex flex-col bg-slate-900 text-slate-300 transition-all duration-300 ease-in-out z-30 fixed left-0 top-0 bottom-0",
-        sidebarOpen ? "w-64" : "w-20"
-      )}>
-        <div className="p-6 flex items-center gap-3">
-          <div className="w-8 h-8 flex items-center justify-center shrink-0">
-            <svg viewBox="0 0 120 120" className="w-8 h-8">
-              <path d="M 60 60 L 95 25" stroke="#ffb300" strokeWidth="26" strokeLinecap="round" />
-              <path d="M 25 95 L 60 60" stroke="#003882" strokeWidth="26" strokeLinecap="round" />
-              <rect x="80" y="10" width="30" height="30" rx="6" fill="#ffb300" />
-              <rect x="45" y="45" width="30" height="30" rx="6" fill="#00A0F0" />
-              <rect x="10" y="80" width="30" height="30" rx="6" fill="#003882" />
-            </svg>
-          </div>
-          {sidebarOpen && (
-            <span className="text-xl font-bold text-white tracking-tight truncate">ERP <span className="font-medium text-slate-300">pra Você</span></span>
-          )}
-        </div>
-
-        <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
-          {MENU_ITEMS.filter(item => {
-            // Se cliente, ocultar abas exclusivas de admin
-            if (userRole === 'client' && ['relatorios'].includes(item.id)) return false; 
-            return true;
-          }).map((item) => {
-            const Icon = item.icon;
-            const isActive = currentModule === item.id;
-            
-            return (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all relative group",
-                  isActive 
-                    ? "bg-blue-600/20 text-blue-400 border border-blue-500/30" 
-                    : "hover:bg-slate-800 hover:text-white text-slate-400"
-                )}
-              >
-                <Icon size={20} className={cn("shrink-0", isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-200")} />
-                {sidebarOpen && (
-                  <span className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                    {item.label}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-slate-800">
-          <button 
-            onClick={onLogout}
-            className={cn(
-              "w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 hover:text-red-400 text-slate-400 transition-colors",
-              !sidebarOpen && "justify-center px-0"
+      {currentModule !== 'business_vision' && (
+        <aside className={cn(
+          "hidden lg:flex flex-col bg-slate-900 text-slate-300 transition-all duration-300 ease-in-out z-30 fixed left-0 top-0 bottom-0",
+          sidebarOpen ? "w-64" : "w-20"
+        )}>
+          <div className="p-6 flex items-center gap-3">
+            <div className="w-8 h-8 flex items-center justify-center shrink-0">
+              <svg viewBox="0 0 120 120" className="w-8 h-8">
+                <path d="M 60 60 L 95 25" stroke="#ffb300" strokeWidth="26" strokeLinecap="round" />
+                <path d="M 25 95 L 60 60" stroke="#003882" strokeWidth="26" strokeLinecap="round" />
+                <rect x="80" y="10" width="30" height="30" rx="6" fill="#ffb300" />
+                <rect x="45" y="45" width="30" height="30" rx="6" fill="#00A0F0" />
+                <rect x="10" y="80" width="30" height="30" rx="6" fill="#003882" />
+              </svg>
+            </div>
+            {sidebarOpen && (
+              <span className="text-xl font-bold text-white tracking-tight truncate">ERP <span className="font-medium text-slate-300">pra Você</span></span>
             )}
-            title="Sair do Sistema"
-          >
-            <LogOut size={20} />
-            {sidebarOpen && <span className="text-sm font-medium">Sair</span>}
-          </button>
-        </div>
-      </aside>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
+            {MENU_ITEMS.filter(item => {
+              // Se cliente, ocultar abas exclusivas de admin
+              if (userRole === 'client' && ['relatorios'].includes(item.id)) return false; 
+              return true;
+            }).map((item) => {
+              const Icon = item.icon;
+              const isActive = currentModule === item.id;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all relative group",
+                    isActive 
+                      ? "bg-blue-600/20 text-blue-400 border border-blue-500/30" 
+                      : "hover:bg-slate-800 hover:text-white text-slate-400"
+                  )}
+                >
+                  <Icon size={20} className={cn("shrink-0", isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-200")} />
+                  {sidebarOpen && (
+                    <span className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="p-4 border-t border-slate-800">
+            <button 
+              onClick={onLogout}
+              className={cn(
+                "w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 hover:text-red-400 text-slate-400 transition-colors",
+                !sidebarOpen && "justify-center px-0"
+              )}
+              title="Sair do Sistema"
+            >
+              <LogOut size={20} />
+              {sidebarOpen && <span className="text-sm font-medium">Sair</span>}
+            </button>
+          </div>
+        </aside>
+      )}
 
       {/* Main Content Area */}
       <div className={cn(
-        "flex-1 flex flex-col transition-all duration-300",
-        sidebarOpen ? "lg:ml-64" : "lg:ml-20"
+        "flex-1 flex flex-col transition-all duration-300 min-w-0 overflow-x-hidden",
+        currentModule === 'business_vision' ? "lg:ml-0" : (sidebarOpen ? "lg:ml-64" : "lg:ml-20")
       )}>
         {/* Header */}
-        <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 flex items-center justify-between px-4 lg:px-8 transition-colors duration-300">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 hidden lg:block transition-colors"
-            >
-              <Menu size={20} />
-            </button>
-            <button 
-              onClick={() => setMobileMenuOpen(true)}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 lg:hidden transition-colors"
-            >
-              <Menu size={20} />
-            </button>
-
-            <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2 w-64 lg:w-[480px] border border-transparent focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-              <Search size={16} className="text-slate-400 mr-2" />
-              <input 
-                type="text" 
-                placeholder="Pesquisar vendas, produtos ou clientes..." 
-                className="bg-transparent border-none outline-none text-sm w-full text-slate-600 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-0"
-              />
+        {currentModule === 'business_vision' ? (
+          <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 flex items-center justify-between px-4 lg:px-8 transition-colors duration-300">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm">
+                <BriefcaseBusiness size={20} />
+              </div>
+              <div>
+                <p className="text-sm font-black text-slate-900 dark:text-white leading-tight">Plano de Negócio</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Visão estratégica do ERP Pra Você</p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2 lg:gap-4">
-            <button 
-              onClick={toggleTheme}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
-              title={theme === 'light' ? 'Mudar para Modo Escuro' : 'Mudar para Modo Claro'}
-            >
-              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={toggleTheme}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+                title={theme === 'light' ? 'Mudar para Modo Escuro' : 'Mudar para Modo Claro'}
+              >
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-2 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 shadow-sm"
+                >
+                  Trocar visão
+                </button>
+              )}
+            </div>
+          </header>
+        ) : (
+          <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 flex items-center justify-between px-4 lg:px-8 transition-colors duration-300">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 hidden lg:block transition-colors"
+              >
+                <Menu size={20} />
+              </button>
+              <button 
+                onClick={() => setMobileMenuOpen(true)}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 lg:hidden transition-colors"
+              >
+                <Menu size={20} />
+              </button>
 
-            <button className="relative p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-            </button>
+              <div className="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2 w-64 lg:w-[480px] border border-transparent focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                <Search size={16} className="text-slate-400 mr-2" />
+                <input 
+                  type="text" 
+                  placeholder="Pesquisar vendas, produtos ou clientes..." 
+                  className="bg-transparent border-none outline-none text-sm w-full text-slate-600 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-0"
+                />
+              </div>
+            </div>
 
-            <button 
-              onClick={() => onNavigate('pdv')}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm transition-colors"
-            >
-              <ShoppingCart size={16} />
-              Nova Venda
-            </button>
-          </div>
-        </header>
+            <div className="flex items-center gap-2 lg:gap-4">
+              <button 
+                onClick={toggleTheme}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
+                title={theme === 'light' ? 'Mudar para Modo Escuro' : 'Mudar para Modo Claro'}
+              >
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
+
+              <button className="relative p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors">
+                <Bell size={20} />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+              </button>
+
+              <button 
+                onClick={() => onNavigate('pdv')}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm transition-colors"
+              >
+                <ShoppingCart size={16} />
+                Nova Venda
+              </button>
+            </div>
+          </header>
+        )}
 
         {/* Content */}
-        <main className="flex-1 p-4 lg:p-8 pb-24 lg:pb-8 overflow-y-auto">
+        <main className={cn(
+          "flex-1 pb-24 lg:pb-8 overflow-y-auto overflow-x-hidden min-w-0",
+          currentModule === 'business_vision' ? "p-0" : "p-4 lg:p-8"
+        )}>
           {children}
         </main>
       </div>

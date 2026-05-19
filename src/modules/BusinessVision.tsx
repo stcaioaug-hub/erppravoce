@@ -877,7 +877,7 @@ export const BusinessVision = () => {
   );
 
   return (
-    <div className="print:hidden flex flex-col">
+    <div className="print:hidden flex flex-col min-w-0 w-full">
       {isFullscreen && createPortal(
         <div className="fixed inset-0 z-[9999] bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
           <div className="fixed top-6 right-6 z-[60] flex items-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2.5 rounded-full shadow-2xl hover:scale-105 transition-all cursor-pointer border border-slate-700 dark:border-slate-200 font-bold text-sm" onClick={() => setIsFullscreen(false)}>
@@ -890,9 +890,9 @@ export const BusinessVision = () => {
         </div>,
         document.body
       )}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20 shadow-sm">
+      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm min-w-0 w-full">
         {/* Desktop Tabs */}
-        <div className="hidden lg:flex gap-6 overflow-x-auto custom-scrollbar px-4 lg:px-8">
+        <div className="hidden lg:flex gap-6 overflow-x-auto custom-scrollbar px-4 lg:px-8 min-w-0 w-full">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -904,10 +904,10 @@ export const BusinessVision = () => {
                   "flex items-center gap-2 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                   active 
                     ? "border-blue-600 text-blue-600 dark:text-blue-400" 
-                    : "border-transparent text-slate-50 hover:text-slate-900 dark:hover:text-slate-300"
+                    : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 )}
               >
-                <Icon size={16} className={cn(active ? "text-blue-600 dark:text-blue-400" : "text-slate-400")} />
+                <Icon size={16} className={cn(active ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400")} />
                 {tab.label}
               </button>
             );
@@ -1771,9 +1771,10 @@ export const BusinessVision = () => {
       </div>
 
       {/* Assistente Imersivo do Plano de Negócio em Tela Cheia */}
-      <AnimatePresence>
-        {isWizardOpen && createPortal(
-          <motion.div
+      {createPortal(
+        <AnimatePresence>
+          {isWizardOpen && (
+            <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
@@ -1908,15 +1909,17 @@ export const BusinessVision = () => {
                 )}
               </div>
             </div>
-          </motion.div>,
-          document.body
-        )}
-      </AnimatePresence>
+          </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       {/* Apresentação Imersiva da Visão Geral em Tela Cheia */}
-      <AnimatePresence>
-        {isPresentationOpen && createPortal(
-          <motion.div
+      {createPortal(
+        <AnimatePresence>
+          {isPresentationOpen && (
+            <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
@@ -2222,10 +2225,11 @@ export const BusinessVision = () => {
                 )}
               </div>
             </div>
-          </motion.div>,
-          document.body
-        )}
-      </AnimatePresence>
+          </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
 
       <Modal isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} title="Relatório de Visão de Negócio" maxWidth="max-w-4xl">
         <div className="space-y-8 p-2 print:p-0">
