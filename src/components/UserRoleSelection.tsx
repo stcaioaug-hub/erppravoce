@@ -1,0 +1,126 @@
+import React from 'react';
+import { Building2, User, ArrowRight, ShieldCheck, Sun, Moon, BriefcaseBusiness } from 'lucide-react';
+import { Card } from './ui';
+import { useTheme } from '../contexts/ThemeContext';
+
+interface UserRoleSelectionProps {
+  onSelect: (role: 'admin' | 'client' | 'business') => void;
+}
+
+export const UserRoleSelection: React.FC<UserRoleSelectionProps> = ({ onSelect }) => {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
+      {/* Theme Toggle Button */}
+      <div className="absolute top-6 right-6 z-20">
+        <button
+          onClick={toggleTheme}
+          className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-lg transition-all"
+          title={theme === 'light' ? 'Mudar para Modo Escuro' : 'Mudar para Modo Claro'}
+        >
+          {theme === 'light' ? <Moon size={22} /> : <Sun size={22} />}
+        </button>
+      </div>
+
+      {/* Background decorations */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="w-full max-w-4xl animate-in fade-in zoom-in duration-700 relative z-10">
+        <div className="text-center mb-12">
+          <div className="flex justify-center mb-6">
+            <svg viewBox="0 0 120 120" className="w-28 h-28 drop-shadow-xl transition-transform hover:scale-105 duration-500 mx-auto">
+              {/* Bridges */}
+              <path d="M 60 60 L 95 25" stroke="#ffb300" strokeWidth="26" strokeLinecap="round" />
+              <path d="M 25 95 L 60 60" stroke="#003882" strokeWidth="26" strokeLinecap="round" />
+              
+              {/* Squares */}
+              <rect x="80" y="10" width="30" height="30" rx="6" fill="#ffb300" />
+              <rect x="45" y="45" width="30" height="30" rx="6" fill="#00A0F0" />
+              <rect x="10" y="80" width="30" height="30" rx="6" fill="#003882" />
+            </svg>
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4 transition-colors">
+            Bem-vindo ao <span className="text-[#003882] dark:text-[#458af0]">ERP</span> <span className="text-[#003882] dark:text-[#458af0] font-medium">pra Você</span>
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-lg max-w-xl mx-auto font-medium transition-colors">
+            Selecione o seu perfil de acesso para continuarmos. A interface será adaptada para suas necessidades.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          {/* Admin Card */}
+          <button
+            onClick={() => onSelect('admin')}
+            className="group relative text-left bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 rounded-3xl hover:bg-white dark:hover:bg-slate-800/80 hover:border-blue-500/50 dark:hover:border-blue-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1"
+          >
+            <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-blue-500/10 text-blue-500 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <ShieldCheck size={24} />
+            </div>
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+              <Building2 size={32} />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              Visão do Administrador
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 transition-colors">
+              Acesso total ao sistema com permissões específicas, abas de clientes, gerenciamento financeiro avançado, projeções e controle de limites.
+            </p>
+            <div className="flex items-center text-sm font-semibold text-blue-600 dark:text-blue-500 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+              Acessar como Administrador <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+
+          {/* Client Card */}
+          <button
+            onClick={() => onSelect('client')}
+            className="group relative text-left bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 rounded-3xl hover:bg-white dark:hover:bg-slate-800/80 hover:border-indigo-500/50 dark:hover:border-indigo-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-500/10 hover:-translate-y-1"
+          >
+            <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-indigo-500/10 text-indigo-500 dark:text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <User size={24} />
+            </div>
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 mb-6 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+              <User size={32} />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              Visão do Cliente
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 transition-colors">
+              Acesso focado na operação diária, PDV, gestão do próprio plano de dados e armazenamento com base no limite estabelecido.
+            </p>
+            <div className="flex items-center text-sm font-semibold text-indigo-600 dark:text-indigo-500 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">
+              Acessar como Cliente <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+
+          {/* Business Plan Card */}
+          <button
+            onClick={() => onSelect('business')}
+            className="group relative text-left bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-8 rounded-3xl hover:bg-white dark:hover:bg-slate-800/80 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-1"
+          >
+            <div className="absolute top-6 right-6 w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <BriefcaseBusiness size={24} />
+            </div>
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
+              <BriefcaseBusiness size={32} />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+              Plano de Negócio
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-6 transition-colors">
+              Visão estratégica separada do ERP operacional para acompanhar mercado, investimento, sociedade, projeções e validação.
+            </p>
+            <div className="flex items-center text-sm font-semibold text-emerald-600 dark:text-emerald-500 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
+              Acessar plano estratégico <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
+        </div>
+      </div>
+      
+      <p className="absolute bottom-8 text-center text-slate-500 dark:text-slate-500 text-sm font-medium">
+        Powered by TechFlow Solutions
+      </p>
+    </div>
+  );
+};
