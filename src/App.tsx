@@ -62,6 +62,8 @@ export default function App() {
         return <Tributary />;
       case 'armazenamento':
         return <Storage />;
+      case 'business_vision':
+        return <BusinessVision />;
       case 'configuracoes':
         return <Settings />;
       default:
@@ -72,7 +74,7 @@ export default function App() {
   if (!userRole) {
     return <UserRoleSelection onSelect={(role) => {
       setUserRole(role);
-      setCurrentModule('dashboard');
+      setCurrentModule(role === 'business' ? 'business_vision' : 'dashboard');
       setIsAuthenticated(true);
     }} />;
   }
@@ -144,47 +146,6 @@ export default function App() {
             Powered by TechFlow Solutions
           </p>
         </div>
-      </div>
-    );
-  }
-
-  if (userRole === 'business') {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
-        <header className="sticky top-0 z-30 h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 lg:px-8 transition-colors">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-sm">
-              <BriefcaseBusiness size={20} />
-            </div>
-            <div>
-              <p className="text-sm font-black text-slate-900 dark:text-white leading-tight">Plano de Negócio</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Visão estratégica do ERP Pra Você</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 dark:text-slate-400 transition-colors"
-              title={theme === 'light' ? 'Mudar para Modo Escuro' : 'Mudar para Modo Claro'}
-            >
-              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-            </button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setIsAuthenticated(false);
-                setUserRole(null);
-              }}
-            >
-              Trocar visão
-            </Button>
-          </div>
-        </header>
-        <main className="pb-8">
-          <BusinessVision />
-        </main>
       </div>
     );
   }

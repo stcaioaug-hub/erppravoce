@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   TrendingUp, 
   ShoppingCart, 
@@ -28,9 +28,48 @@ import {
 } from 'recharts';
 import { PageHeader, StatCard, Card, Badge, Button, Table, THead, TBody, TR, TH, TD } from '../components/ui';
 import { DASHBOARD_STATS, MOCK_SALES, MOCK_PRODUCTS } from '../data/mocks';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { fetchProducts, fetchSales } from '../lib/varejoflowRepository';
 import { formatCurrency, formatDate } from '../lib/utils';
+import { Product, Sale } from '../types';
 
 export const Dashboard = () => {
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [sales, setSales] = useState<Sale[]>(MOCK_SALES);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    let isMounted = true;
+
+    Promise.all([fetchProducts(), fetchSales(8)])
+      .then(([syncedProducts, syncedSales]) => {
+        if (!isMounted) return;
+        if (syncedProducts.length) setProducts(syncedProducts);
+        if (syncedSales.length) setSales(syncedSales);
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar dashboard do Supabase:', error);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const dashboardStats = useMemo(() => {
+    const today = new Date().toDateString();
+    const todaySales = sales.filter((sale) => sale.date.toDateString() === today);
+    const todayRevenue = todaySales.reduce((sum, sale) => sum + sale.finalTotal, 0);
+
+    return {
+      todaySales: todaySales.length ? todayRevenue : DASHBOARD_STATS.todaySales,
+      todayOrders: todaySales.length || DASHBOARD_STATS.todayOrders,
+      avgTicket: todaySales.length ? todayRevenue / todaySales.length : DASHBOARD_STATS.avgTicket,
+      lowStockItems: products.filter((product) => product.currentStock <= product.minStock).length,
+    };
+  }, [products, sales]);
+
   return (
     <div className="space-y-6">
       <PageHeader 
@@ -50,7 +89,7 @@ export const Dashboard = () => {
         {/* Stat Card 1 */}
         <StatCard 
           title="Faturamento Hoje" 
-          value={formatCurrency(DASHBOARD_STATS.todaySales)} 
+          value={formatCurrency(dashboardStats.todaySales)} 
           icon={TrendingUp}
           trend={{ value: 12, positive: true }}
           color="emerald"
@@ -59,7 +98,7 @@ export const Dashboard = () => {
         {/* Stat Card 2 */}
         <StatCard 
           title="Vendas Realizadas" 
-          value={DASHBOARD_STATS.todayOrders} 
+          value={dashboardStats.todayOrders} 
           icon={ShoppingCart}
           trend={{ value: 48, positive: true }} // Just using value as % for display
           color="blue"
@@ -129,7 +168,7 @@ export const Dashboard = () => {
               Estoque Crítico
             </h3>
             <div className="space-y-4">
-              {MOCK_PRODUCTS.filter(p => p.currentStock <= p.minStock).slice(0, 3).map((product) => (
+              {products.filter(p => p.currentStock <= p.minStock).slice(0, 3).map((product) => (
                 <div key={product.id} className="flex items-center justify-between group">
                   <span className="text-xs text-slate-600 font-medium group-hover:text-blue-600 transition-colors">{product.name}</span>
                   <span className="text-xs font-black text-red-600 bg-red-50 px-2 py-0.5 rounded-md">{product.currentStock} {product.unit}</span>
@@ -191,7 +230,7 @@ export const Dashboard = () => {
               </TR>
             </THead>
             <TBody>
-              {MOCK_SALES.map((sale) => (
+              {sales.map((sale) => (
                 <TR key={sale.id} className="hover:bg-slate-50 transition-colors">
                   <TD className="px-6 py-3 font-mono text-slate-400 uppercase font-bold text-[10px]">#{sale.id}</TD>
                   <TD className="px-6 py-3 font-bold text-slate-900">{sale.customerName}</TD>

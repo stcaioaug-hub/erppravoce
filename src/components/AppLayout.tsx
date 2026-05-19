@@ -24,7 +24,8 @@ import {
   Receipt,
   HardDrive,
   Sun,
-  Moon
+  Moon,
+  BriefcaseBusiness
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { currentUser } from '../data/mocks';
@@ -44,13 +45,14 @@ const MENU_ITEMS = [
   { id: 'fornecedores', label: 'Fornecedores', icon: Truck },
   { id: 'relatorios', label: 'Relatórios', icon: BarChart3 },
   { id: 'armazenamento', label: 'Armazenamento', icon: HardDrive },
+  { id: 'business_vision', label: 'Plano de Negócio', icon: BriefcaseBusiness },
   { id: 'configuracoes', label: 'Configurações', icon: Settings },
 ];
 
 interface AppLayoutProps {
   currentModule: string;
   onNavigate: (module: string) => void;
-  userRole: 'admin' | 'client';
+  userRole: 'admin' | 'client' | 'business' | null;
   onLogout?: () => void;
   children: React.ReactNode;
 }
@@ -207,6 +209,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
           { id: 'pdv', label: 'PDV', icon: Monitor },
           { id: 'vendas', label: 'Vendas', icon: ShoppingCart },
           { id: 'produtos', label: 'Produtos', icon: Package },
+          { id: 'business_vision', label: 'Plano', icon: BriefcaseBusiness },
         ].map((item) => {
           const Icon = item.icon;
           const isActive = currentModule === item.id;
@@ -215,7 +218,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center p-2 my-1 rounded-xl transition-all min-w-[60px] flex-1",
+                "flex flex-col items-center justify-center p-2 my-1 rounded-xl transition-all min-w-[50px] flex-1",
                 isActive 
                   ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10" 
                   : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
@@ -228,7 +231,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
         })}
         <button
           onClick={() => setMobileMenuOpen(true)}
-          className="flex flex-col items-center justify-center p-2 my-1 rounded-xl transition-all min-w-[60px] flex-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+          className="flex flex-col items-center justify-center p-2 my-1 rounded-xl transition-all min-w-[50px] flex-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
         >
           <Menu size={20} className="mb-1" />
           <span className="text-[10px] font-medium">Mais</span>

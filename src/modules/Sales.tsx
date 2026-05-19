@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Search, 
   Filter, 
@@ -27,15 +27,44 @@ import {
   Badge 
 } from '../components/ui';
 import { MOCK_SALES } from '../data/mocks';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { fetchSales } from '../lib/varejoflowRepository';
 import { formatCurrency, formatDateTime } from '../lib/utils';
-import { SaleStatus } from '../types';
+import { Sale, SaleStatus } from '../types';
 
 export const Sales = () => {
+  const [sales, setSales] = useState<Sale[]>(MOCK_SALES);
+  const [isLoading, setIsLoading] = useState(isSupabaseConfigured);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    fetchSales(50)
+      .then((data) => {
+        if (isMounted) setSales(data.length ? data : MOCK_SALES);
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar vendas do Supabase:', error);
+        if (isMounted) setSyncError('Usando vendas locais. Verifique schema, RLS ou chave do Supabase.');
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="space-y-6">
       <PageHeader 
         title="Vendas" 
-        subtitle="Gerencie todas as transações da sua empresa" 
+        subtitle={isLoading ? 'Sincronizando vendas com Supabase...' : syncError ?? 'Gerencie todas as transações da sua empresa'} 
         actions={
           <Button className="bg-indigo-600 text-white" size="sm">
             Falar com Suporte
@@ -72,7 +101,7 @@ export const Sales = () => {
             </TR>
           </THead>
           <TBody>
-            {MOCK_SALES.map((sale) => (
+            {sales.map((sale) => (
               <TR key={sale.id} className="hover:bg-slate-50 transition-colors group">
                 <TD>
                   <span className="font-mono text-xs font-bold text-slate-400">#{sale.id.toUpperCase()}</span>

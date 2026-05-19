@@ -130,3 +130,56 @@ export interface FinancialEntry {
   status: FinancialStatus;
   referenceId?: string; // Link to Sale or Purchase
 }
+
+// === BUSINESS VISION TYPES ===
+
+export interface BusinessPlanSection {
+  id: string;
+  companyId: string;
+  title: string;
+  body: string;
+}
+
+export interface NextStep {
+  id: string;
+  companyId: string;
+  text: string;
+  completed: boolean;
+  order: number;
+}
+
+export interface BusinessSimulation {
+  id: string;
+  companyId: string;
+  scenarioName: string;
+  isActive: boolean;
+  clients: number;
+  ticket: number;
+  fixedCost: number;
+  variableCost: number;
+  initialInvestment: number;
+  taxRate: number;
+  churnRate: number;
+  growthRate: number;
+}
+
+export interface BusinessFunnel {
+  id: string;
+  companyId: string;
+  leads: number;
+  meetingConversion: number;
+  trialConversion: number;
+  paidConversion: number;
+  ticket: number;
+}
+
+export interface BusinessPartner {
+  id: string;
+  companyId: string;
+  name: string;
+  role: string;
+  responsibilities: string;
+  sharePercentage: number;
+  area: string;
+  notes: string;
+}

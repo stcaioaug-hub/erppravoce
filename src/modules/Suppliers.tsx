@@ -3,15 +3,63 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
-import { Plus, Search, Truck, Mail, Phone, Tag, MoreVertical, Edit2, Trash2 } from 'lucide-react';
-import { PageHeader, Button, Card, Input, Table, THead, TBody, TH, TD, TR, Badge } from '../components/ui';
+import React, { useEffect, useState } from 'react';
+import { Plus, Search, Truck, Mail, Phone, Tag, MoreVertical, Edit2, Trash2, AlertTriangle } from 'lucide-react';
+import { PageHeader, Button, Card, Input, Table, THead, TBody, TH, TD, TR, Badge, Modal } from '../components/ui';
 import { MOCK_SUPPLIERS } from '../data/mocks';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { fetchSuppliers, deleteSupplier } from '../lib/varejoflowRepository';
+import { Supplier } from '../types';
 
 export const Suppliers = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [suppliers, setSuppliers] = useState<Supplier[]>(MOCK_SUPPLIERS);
+  const [isLoading, setIsLoading] = useState(isSupabaseConfigured);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const filtered = MOCK_SUPPLIERS.filter(s => 
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    fetchSuppliers()
+      .then((data) => {
+        if (isMounted) setSuppliers(data.length ? data : MOCK_SUPPLIERS);
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar fornecedores do Supabase:', error);
+        if (isMounted) setSyncError('Usando dados locais. Verifique schema, RLS ou chave do Supabase.');
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleConfirmDelete = async () => {
+    if (!supplierToDelete) return;
+    setIsDeleting(true);
+    try {
+      if (isSupabaseConfigured) {
+        await deleteSupplier(supplierToDelete.id);
+      }
+      setSuppliers(prev => prev.filter(s => s.id !== supplierToDelete.id));
+      setSupplierToDelete(null);
+    } catch (err) {
+      console.error('Erro ao excluir fornecedor:', err);
+      alert('Erro ao excluir fornecedor. Tente novamente.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const filtered = suppliers.filter(s => 
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     s.cnpj.includes(searchTerm) ||
     s.category.toLowerCase().includes(searchTerm.toLowerCase())
@@ -21,7 +69,7 @@ export const Suppliers = () => {
     <div className="space-y-6">
       <PageHeader 
         title="Fornecedores" 
-        subtitle="Gerencie seus parceiros de suprimentos" 
+        subtitle={isLoading ? 'Sincronizando fornecedores com Supabase...' : syncError ?? 'Gerencie seus parceiros de suprimentos'} 
         actions={
           <Button className="bg-blue-600 text-white" size="sm">
             <Plus size={16} className="mr-2" /> Novo Fornecedor
@@ -85,7 +133,12 @@ export const Suppliers = () => {
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-blue-600">
                       <Edit2 size={16} />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-400 hover:text-red-500"
+                      onClick={() => setSupplierToDelete(supplier)}
+                    >
                       <Trash2 size={16} />
                     </Button>
                   </div>
@@ -95,6 +148,37 @@ export const Suppliers = () => {
           </TBody>
         </Table>
       </Card>
+
+      <Modal
+        isOpen={!!supplierToDelete}
+        onClose={() => setSupplierToDelete(null)}
+        title="Confirmar Exclusão"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setSupplierToDelete(null)} disabled={isDeleting}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={handleConfirmDelete} isLoading={isDeleting}>
+              Sim, Excluir
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-red-50 dark:bg-red-500/10 text-red-600 rounded-full shrink-0">
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold">
+              Você tem certeza que deseja excluir o fornecedor <span className="font-bold text-red-600">"{supplierToDelete?.name}"</span>?
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Esta ação não poderá ser desfeita e removerá o fornecedor permanentemente do sistema.
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
+

@@ -24,6 +24,7 @@ export const Storage = ({ userRole }: { userRole?: 'admin' | 'client' }) => {
   const [showAlert, setShowAlert] = useState(false);
   const [freedSpace, setFreedSpace] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [clearAction, setClearAction] = useState<{ type: string; amount: number; label: string; desc: string } | null>(null);
 
   const usagePercent = ((CURRENT_USAGE_GB - freedSpace) / STORAGE_LIMIT_GB) * 100;
   const isOverLimit = usagePercent > 100;
@@ -172,7 +173,7 @@ export const Storage = ({ userRole }: { userRole?: 'admin' | 'client' }) => {
               </div>
               <p className="text-xs text-slate-500 mb-3 line-clamp-2">Exclua logs de acesso e dados temporários de sessão antigos.</p>
               <Button 
-                onClick={() => handleClearSpace(0.7)}
+                onClick={() => setClearAction({ type: 'logs', amount: 0.7, label: 'Logs do Sistema', desc: 'Exclua logs de acesso e dados temporários de sessão antigos.' })}
                 className="w-full text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 h-9"
               >
                 <Trash2 size={14} className="mr-2" /> Limpar Logs
@@ -189,7 +190,7 @@ export const Storage = ({ userRole }: { userRole?: 'admin' | 'client' }) => {
               </div>
               <p className="text-xs text-slate-500 mb-3 line-clamp-2">Exclua relatórios gerados há mais de 6 meses que não são mais úteis.</p>
               <Button 
-                onClick={() => handleClearSpace(1.5)}
+                onClick={() => setClearAction({ type: 'reports', amount: 1.5, label: 'Relatórios Antigos', desc: 'Exclua relatórios gerados há mais de 6 meses que não são mais úteis.' })}
                 className="w-full text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 h-9"
               >
                 <Trash2 size={14} className="mr-2" /> Remover Relatórios
@@ -206,7 +207,7 @@ export const Storage = ({ userRole }: { userRole?: 'admin' | 'client' }) => {
               </div>
               <p className="text-xs text-slate-500 mb-3 line-clamp-2">Comprimir imagens de produtos e remover fotos de produtos inativos.</p>
               <Button 
-                onClick={() => handleClearSpace(2.0)}
+                onClick={() => setClearAction({ type: 'images', amount: 2.0, label: 'Otimizar Imagens', desc: 'Comprimir imagens de produtos e remover fotos de produtos inativos.' })}
                 className="w-full text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 h-9"
               >
                 <Trash2 size={14} className="mr-2" /> Otimizar Galeria
@@ -283,7 +284,7 @@ export const Storage = ({ userRole }: { userRole?: 'admin' | 'client' }) => {
             <h4 className="font-bold text-slate-800 text-lg">Básico (Atual)</h4>
             <p className="text-slate-500 text-sm mt-1 mb-4">Ideal para pequenos negócios.</p>
             <div className="flex items-end gap-1 mb-4">
-              <span className="text-3xl font-black text-slate-900">R$ 49</span>
+               <span className="text-3xl font-black text-slate-900">R$ 49</span>
               <span className="text-slate-500 font-medium">/mês</span>
             </div>
             <ul className="space-y-2 mb-4">
@@ -340,6 +341,36 @@ export const Storage = ({ userRole }: { userRole?: 'admin' | 'client' }) => {
             <Button variant="outline" className="w-full">
               Falar com Vendas
             </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!clearAction}
+        onClose={() => setClearAction(null)}
+        title="Confirmar Limpeza"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setClearAction(null)}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={() => { if (clearAction) { handleClearSpace(clearAction.amount); setClearAction(null); } }}>
+              Sim, Limpar
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-amber-50 text-amber-600 rounded-full shrink-0">
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <p className="text-slate-800 font-semibold">
+              Você tem certeza que deseja executar a limpeza de <span className="font-bold text-amber-600">"{clearAction?.label}"</span>?
+            </p>
+            <p className="text-sm text-slate-500 mt-1">
+              {clearAction?.desc} Esta ação liberará ~{clearAction?.amount} GB de espaço.
+            </p>
           </div>
         </div>
       </Modal>

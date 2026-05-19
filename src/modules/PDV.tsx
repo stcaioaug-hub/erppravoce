@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   Search, 
   Trash2, 
@@ -25,7 +25,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import { Card, Button, Input, Badge, Modal } from '../components/ui';
 import { MOCK_PRODUCTS, MOCK_CUSTOMERS } from '../data/mocks';
-import { Product, PaymentMethod, SaleItem } from '../types';
+import { Product, PaymentMethod, SaleItem, Customer } from '../types';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { createSale, fetchCustomers, fetchProducts } from '../lib/varejoflowRepository';
 import { formatCurrency, cn } from '../lib/utils';
 
 export const PDV = () => {
@@ -35,25 +37,53 @@ export const PDV = () => {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [checkoutStep, setCheckoutStep] = useState(1);
-  const [selectedCustomer, setSelectedCustomer] = useState(MOCK_CUSTOMERS[0]);
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [customers, setCustomers] = useState<Customer[]>(MOCK_CUSTOMERS);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer>(MOCK_CUSTOMERS[0]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [customerSearch, setCustomerSearch] = useState('');
+  const [isSavingSale, setIsSavingSale] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    let isMounted = true;
+
+    Promise.all([fetchProducts(), fetchCustomers()])
+      .then(([syncedProducts, syncedCustomers]) => {
+        if (!isMounted) return;
+        if (syncedProducts.length) setProducts(syncedProducts);
+        if (syncedCustomers.length) {
+          setCustomers(syncedCustomers);
+          setSelectedCustomer(syncedCustomers[0]);
+        }
+      })
+      .catch((error) => {
+        console.error('Erro ao sincronizar PDV com Supabase:', error);
+        if (isMounted) setSyncError('PDV em modo local. Verifique schema, RLS ou chave do Supabase.');
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const filteredCustomers = useMemo(() => {
-    return MOCK_CUSTOMERS.filter(c => 
+    return customers.filter(c => 
       c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
       c.document.includes(customerSearch)
     );
-  }, [customerSearch]);
+  }, [customers, customerSearch]);
 
   const filteredProducts = useMemo(() => {
-    if (!searchTerm) return MOCK_PRODUCTS.slice(0, 5);
-    return MOCK_PRODUCTS.filter(p => 
+    if (!searchTerm) return products.slice(0, 5);
+    return products.filter(p => 
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
       p.barcode.includes(searchTerm) ||
       p.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [products, searchTerm]);
 
   const addToCart = (product: Product) => {
     setCart(prev => {
@@ -100,16 +130,40 @@ export const PDV = () => {
     };
   }, [cart]);
 
-  const handleFinishSale = () => {
-    alert(`Venda finalizada com sucesso via ${paymentMethod} para ${selectedCustomer.name}!`);
-    setCart([]);
-    setPaymentMethod(null);
-    setCheckoutStep(1);
-    setIsCheckoutModalOpen(false);
+  const handleFinishSale = async () => {
+    if (!paymentMethod) return;
+
+    setIsSavingSale(true);
+
+    try {
+      if (isSupabaseConfigured) {
+        await createSale({
+          customerId: selectedCustomer.id,
+          customerName: selectedCustomer.name,
+          items: cart,
+          paymentMethod,
+          sellerId: 'u1',
+        });
+
+        const syncedProducts = await fetchProducts();
+        if (syncedProducts.length) setProducts(syncedProducts);
+      }
+
+      alert(`Venda finalizada com sucesso via ${paymentMethod} para ${selectedCustomer.name}!`);
+      setCart([]);
+      setPaymentMethod(null);
+      setCheckoutStep(1);
+      setIsCheckoutModalOpen(false);
+    } catch (error) {
+      console.error('Erro ao finalizar venda:', error);
+      alert('Nao foi possivel salvar a venda no Supabase. Confira a conexao, schema e permissoes.');
+    } finally {
+      setIsSavingSale(false);
+    }
   };
 
   const onScanSuccess = (decodedText: string) => {
-    const product = MOCK_PRODUCTS.find(p => p.barcode === decodedText || p.sku === decodedText);
+    const product = products.find(p => p.barcode === decodedText || p.sku === decodedText);
     if (product) {
       addToCart(product);
       setIsScannerOpen(false);
@@ -149,6 +203,11 @@ export const PDV = () => {
     <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)] overflow-hidden">
       {/* Product Selection Area */}
       <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+        {syncError && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+            {syncError}
+          </div>
+        )}
         <Card className="p-4 shrink-0">
           <div className="flex gap-4">
             <div className="relative flex-1">
@@ -242,7 +301,7 @@ export const PDV = () => {
                     <div className="flex-1">
                       <button 
                         onClick={() => {
-                          const product = MOCK_PRODUCTS.find(p => p.id === item.productId);
+                          const product = products.find(p => p.id === item.productId);
                           if (product) setSelectedProduct(product);
                         }}
                         className="text-sm font-bold text-slate-900 line-clamp-1 hover:text-blue-600 hover:underline transition-all text-left"
@@ -348,6 +407,8 @@ export const PDV = () => {
               <Button 
                 onClick={handleFinishSale}
                 className="bg-blue-600 text-white"
+                isLoading={isSavingSale}
+                disabled={isSavingSale}
               >
                 Finalizar Venda
               </Button>

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { 
   Plus, 
   Search, 
@@ -13,7 +13,8 @@ import {
   MoreVertical, 
   Package, 
   Barcode,
-  History
+  History,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   PageHeader, 
@@ -26,15 +27,75 @@ import {
   TH, 
   TD, 
   TR,
-  Badge 
+  Badge,
+  Modal
 } from '../components/ui';
 import { MOCK_PRODUCTS } from '../data/mocks';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { fetchProducts, deleteProduct } from '../lib/varejoflowRepository';
 import { formatCurrency, cn } from '../lib/utils';
+import { Product } from '../types';
 
 export const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
+  const [isLoading, setIsLoading] = useState(isSupabaseConfigured);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const filtered = MOCK_PRODUCTS.filter(p => 
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    fetchProducts()
+      .then((data) => {
+        if (isMounted) setProducts(data.length ? data : MOCK_PRODUCTS);
+      })
+      .catch((error) => {
+        console.error('Erro ao carregar produtos do Supabase:', error);
+        if (isMounted) setSyncError('Usando dados locais. Verifique schema, RLS ou chave do Supabase.');
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
+    setIsDeleting(true);
+    try {
+      if (isSupabaseConfigured) {
+        await deleteProduct(productToDelete.id);
+      }
+      setProducts(prev => prev.filter(p => p.id !== productToDelete.id));
+      setProductToDelete(null);
+    } catch (err) {
+      console.error('Erro ao excluir produto:', err);
+      alert('Erro ao excluir produto. Tente novamente.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const stockSummary = useMemo(() => {
+    return products.reduce(
+      (summary, product) => ({
+        units: summary.units + product.currentStock,
+        cost: summary.cost + product.currentStock * product.costPrice,
+        sale: summary.sale + product.currentStock * product.salePrice,
+      }),
+      { units: 0, cost: 0, sale: 0 }
+    );
+  }, [products]);
+
+  const filtered = products.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.barcode.includes(searchTerm)
@@ -44,7 +105,7 @@ export const Products = () => {
     <div className="space-y-6">
       <PageHeader 
         title="Produtos" 
-        subtitle="Gerencie seu catálogo de mercadorias" 
+        subtitle={isLoading ? 'Sincronizando produtos com Supabase...' : syncError ?? 'Gerencie seu catálogo de mercadorias'} 
         actions={
           <>
             <Button variant="outline" size="sm">
@@ -60,15 +121,15 @@ export const Products = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Itens em Estoque</p>
-          <p className="text-2xl font-black text-slate-900 mt-1">113 <span className="text-sm font-medium text-slate-400 font-normal">unidades</span></p>
+          <p className="text-2xl font-black text-slate-900 mt-1">{stockSummary.units} <span className="text-sm font-medium text-slate-400 font-normal">unidades</span></p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Valor em Estoque (Custo)</p>
-          <p className="text-2xl font-black text-emerald-600 mt-1">{formatCurrency(12450.00)}</p>
+          <p className="text-2xl font-black text-emerald-600 mt-1">{formatCurrency(stockSummary.cost)}</p>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Valor Estimado (Venda)</p>
-          <p className="text-2xl font-black text-indigo-600 mt-1">{formatCurrency(21800.50)}</p>
+          <p className="text-2xl font-black text-indigo-600 mt-1">{formatCurrency(stockSummary.sale)}</p>
         </div>
       </div>
 
@@ -157,7 +218,12 @@ export const Products = () => {
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-indigo-600">
                       <Edit2 size={16} />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-400 hover:text-red-500"
+                      onClick={() => setProductToDelete(product)}
+                    >
                       <Trash2 size={16} />
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
@@ -177,6 +243,37 @@ export const Products = () => {
           </div>
         )}
       </Card>
+
+      <Modal
+        isOpen={!!productToDelete}
+        onClose={() => setProductToDelete(null)}
+        title="Confirmar Exclusão"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setProductToDelete(null)} disabled={isDeleting}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={handleConfirmDelete} isLoading={isDeleting}>
+              Sim, Excluir
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-red-50 dark:bg-red-500/10 text-red-600 rounded-full shrink-0">
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold">
+              Você tem certeza que deseja excluir o produto <span className="font-bold text-red-600">"{productToDelete?.name}"</span>?
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Esta ação não poderá ser desfeita e removerá o produto permanentemente do sistema.
+            </p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
+

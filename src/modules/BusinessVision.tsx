@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Area,
@@ -58,9 +59,23 @@ import {
   CheckSquare,
   Square,
   ArrowRight,
+  ArrowLeft,
 } from 'lucide-react';
 import { Badge, Button, Card, Input, PageHeader, StatCard, Table, TBody, TD, TH, THead, TR, Modal } from '../components/ui';
 import { formatCurrency, cn } from '../lib/utils';
+import {
+  fetchBusinessPlanSections,
+  saveBusinessPlanSection,
+  fetchNextSteps,
+  addNextStep as repoAddNextStep,
+  updateNextStep as repoUpdateNextStep,
+  deleteNextStep as repoDeleteNextStep,
+  fetchBusinessSimulations,
+  saveBusinessSimulation,
+  fetchBusinessFunnel,
+  saveBusinessFunnel,
+} from '../lib/businessVisionRepository';
+import { NextStep } from '../types';
 import {
   businessPlan,
   implementationPhases,
@@ -519,8 +534,16 @@ export const BusinessVision = () => {
   const [isPresentationOpen, setIsPresentationOpen] = useState(false);
   const [presentationStep, setPresentationStep] = useState(0);
 
-  const updateWizardItemBody = (text: string) => {
+  const updateWizardItemBody = async (text: string) => {
     setBusinessPlanItems(prev => prev.map((item, index) => index === wizardStep ? { ...item, body: text } : item));
+    const title = businessPlanItems[wizardStep]?.title;
+    if (title) {
+       try {
+         await saveBusinessPlanSection(title, text);
+       } catch (err) {
+         console.error("Error saving business plan section:", err);
+       }
+    }
   };
   const [costScenario, setCostScenario] = useState<CostScenario>('professional');
   const [funnel, setFunnel] = useState({ leads: 80, meeting: 35, trial: 55, paid: 45, ticket: 197 });
@@ -541,40 +564,143 @@ export const BusinessVision = () => {
   const [scenario, setScenario] = useState(scenarioPresets.Realista);
 
   // Next Steps State
-  const [nextSteps, setNextSteps] = useState([
-    { id: 1, text: 'Encontrar 2 clientes para fase de testes sem compromisso', completed: false },
-    { id: 2, text: 'Validar o fluxo de caixa e emissão simples com o primeiro cliente piloto', completed: false },
-    { id: 3, text: 'Coletar feedback sobre usabilidade do PDV e ajustar a interface', completed: false },
-    { id: 4, text: 'Estruturar o modelo de contrato de adesão simplificado', completed: false },
-  ]);
+  const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
   const [newStepText, setNewStepText] = useState('');
-  const [editingStepId, setEditingStepId] = useState<number | null>(null);
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
   const [editingStepText, setEditingStepText] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [stepToDelete, setStepToDelete] = useState<string | null>(null);
+  const [isDeletingStep, setIsDeletingStep] = useState(false);
 
-  const addNextStep = () => {
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [loadedPlan, loadedNextSteps, loadedSims, loadedFunnel] = await Promise.all([
+          fetchBusinessPlanSections(),
+          fetchNextSteps(),
+          fetchBusinessSimulations(),
+          fetchBusinessFunnel(),
+        ]);
+        
+        if (loadedPlan.length > 0) {
+           setBusinessPlanItems(prev => prev.map(item => {
+              const loaded = loadedPlan.find(p => p.title === item.title);
+              return loaded ? { ...item, body: loaded.body } : item;
+           }));
+        }
+
+        if (loadedNextSteps.length > 0) {
+          setNextSteps(loadedNextSteps);
+        } else {
+          // Fallback if empty database
+          setNextSteps([
+            { id: '1', companyId: '', text: 'Encontrar 2 clientes para fase de testes sem compromisso', completed: false, order: 0 },
+            { id: '2', companyId: '', text: 'Validar o fluxo de caixa e emissão simples com o primeiro cliente piloto', completed: false, order: 1 },
+            { id: '3', companyId: '', text: 'Coletar feedback sobre usabilidade do PDV e ajustar a interface', completed: false, order: 2 },
+            { id: '4', companyId: '', text: 'Estruturar o modelo de contrato de adesão simplificado', completed: false, order: 3 },
+          ]);
+        }
+        
+        if (loadedFunnel) {
+           setFunnel({
+             leads: loadedFunnel.leads,
+             meeting: loadedFunnel.meetingConversion,
+             trial: loadedFunnel.trialConversion,
+             paid: loadedFunnel.paidConversion,
+             ticket: loadedFunnel.ticket
+           });
+        }
+
+        const realismSim = loadedSims.find(s => s.scenarioName === 'Realista');
+        if (realismSim) {
+           const simData = {
+             clients: realismSim.clients,
+             ticket: realismSim.ticket,
+             fixedCost: realismSim.fixedCost,
+             variableCost: realismSim.variableCost,
+             initialInvestment: realismSim.initialInvestment,
+             growth: realismSim.growthRate,
+             churn: realismSim.churnRate,
+             tax: realismSim.taxRate,
+           };
+           setScenario(simData);
+           // Também sincronizar a simulação geral baseada na Realista se for a primeira vez
+           setFinance(simData);
+        }
+
+      } catch (err) {
+        console.error("Error loading business vision data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const addNextStep = async () => {
     if (!newStepText.trim()) return;
-    setNextSteps([...nextSteps, { id: Date.now(), text: newStepText.trim(), completed: false }]);
-    setNewStepText('');
+    try {
+      const added = await repoAddNextStep(newStepText.trim());
+      setNextSteps([...nextSteps, added]);
+      setNewStepText('');
+    } catch (err) {
+      console.error(err);
+      // Fallback local caso dê erro de supabase config
+      setNextSteps([...nextSteps, { id: Date.now().toString(), companyId: '', text: newStepText.trim(), completed: false, order: 0 }]);
+      setNewStepText('');
+    }
   };
 
-  const toggleNextStep = (id: number) => {
-    setNextSteps(nextSteps.map(step => step.id === id ? { ...step, completed: !step.completed } : step));
+  const toggleNextStep = async (id: string) => {
+    const step = nextSteps.find(s => s.id === id);
+    if (!step) return;
+    try {
+      if (id.length > 5) await repoUpdateNextStep(id, { completed: !step.completed });
+      setNextSteps(nextSteps.map(s => s.id === id ? { ...s, completed: !s.completed } : s));
+    } catch (err) {
+      console.error(err);
+      setNextSteps(nextSteps.map(s => s.id === id ? { ...s, completed: !s.completed } : s));
+    }
   };
 
-  const deleteNextStep = (id: number) => {
-    setNextSteps(nextSteps.filter(step => step.id !== id));
+  const deleteNextStep = (id: string) => {
+    setStepToDelete(id);
   };
 
-  const startEditNextStep = (step: { id: number; text: string }) => {
+  const handleConfirmDeleteStep = async () => {
+    if (!stepToDelete) return;
+    setIsDeletingStep(true);
+    try {
+      if (stepToDelete.length > 5) await repoDeleteNextStep(stepToDelete);
+      setNextSteps(nextSteps.filter(step => step.id !== stepToDelete));
+      setStepToDelete(null);
+    } catch (err) {
+      console.error(err);
+      setNextSteps(nextSteps.filter(step => step.id !== stepToDelete));
+      setStepToDelete(null);
+    } finally {
+      setIsDeletingStep(false);
+    }
+  };
+
+  const startEditNextStep = (step: NextStep) => {
     setEditingStepId(step.id);
     setEditingStepText(step.text);
   };
 
-  const saveEditNextStep = (id: number) => {
+  const saveEditNextStep = async (id: string) => {
     if (!editingStepText.trim()) return;
-    setNextSteps(nextSteps.map(step => step.id === id ? { ...step, text: editingStepText.trim() } : step));
-    setEditingStepId(null);
-    setEditingStepText('');
+    try {
+      if (id.length > 5) await repoUpdateNextStep(id, { text: editingStepText.trim() });
+      setNextSteps(nextSteps.map(step => step.id === id ? { ...step, text: editingStepText.trim() } : step));
+      setEditingStepId(null);
+      setEditingStepText('');
+    } catch (err) {
+      console.error(err);
+      setNextSteps(nextSteps.map(step => step.id === id ? { ...step, text: editingStepText.trim() } : step));
+      setEditingStepId(null);
+      setEditingStepText('');
+    }
   };
 
   const cancelEditNextStep = () => {
@@ -641,10 +767,59 @@ export const BusinessVision = () => {
     acumulado: implementationPhases.slice(0, index + 1).reduce((total, item) => total + item.monthlyCostValue, 0),
   }));
 
-  const updateScenario = (name: ScenarioName) => {
+  const updateScenario = async (name: ScenarioName) => {
     setScenarioName(name);
     setScenario(scenarioPresets[name]);
+    try {
+      await saveBusinessSimulation(name, {
+        clients: scenarioPresets[name].clients,
+        ticket: scenarioPresets[name].ticket,
+        fixedCost: scenarioPresets[name].fixedCost,
+        variableCost: scenarioPresets[name].variableCost,
+        initialInvestment: scenarioPresets[name].initialInvestment,
+        taxRate: scenarioPresets[name].tax,
+        churnRate: scenarioPresets[name].churn,
+        growthRate: scenarioPresets[name].growth,
+        isActive: true
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
+
+  // Add auto-save for funnel changes with debounce (using simple effect)
+  useEffect(() => {
+    if (isLoading) return; // Don't save during initial load
+    const timer = setTimeout(() => {
+       saveBusinessFunnel({
+         leads: funnel.leads,
+         meetingConversion: funnel.meeting,
+         trialConversion: funnel.trial,
+         paidConversion: funnel.paid,
+         ticket: funnel.ticket
+       }).catch(console.error);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [funnel, isLoading]);
+
+  // Add auto-save for finance/scenario changes
+  useEffect(() => {
+    if (isLoading) return;
+    const timer = setTimeout(() => {
+       saveBusinessSimulation('Personalizado', {
+         clients: finance.clients,
+         ticket: finance.ticket,
+         fixedCost: finance.fixedCost,
+         variableCost: finance.variableCost,
+         initialInvestment: finance.initialInvestment,
+         taxRate: finance.tax,
+         churnRate: finance.churn,
+         growthRate: finance.growth,
+         isActive: true
+       }).catch(console.error);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [finance, isLoading]);
 
   const renderSalesPage = (inFullscreen = false) => (
     <div className="space-y-6">
@@ -703,8 +878,8 @@ export const BusinessVision = () => {
 
   return (
     <div className="print:hidden flex flex-col">
-      {isFullscreen && (
-        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
+      {isFullscreen && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-slate-50 dark:bg-slate-950 overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
           <div className="fixed top-6 right-6 z-[60] flex items-center gap-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-2.5 rounded-full shadow-2xl hover:scale-105 transition-all cursor-pointer border border-slate-700 dark:border-slate-200 font-bold text-sm" onClick={() => setIsFullscreen(false)}>
             <Minimize2 size={18} />
             <span>Sair da Tela Cheia</span>
@@ -712,10 +887,12 @@ export const BusinessVision = () => {
           <div className="max-w-7xl mx-auto p-4 lg:p-12 space-y-8 mt-12">
             {renderSalesPage(true)}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-16 z-20 shadow-sm">
-        <div className="flex gap-6 overflow-x-auto custom-scrollbar px-4 lg:px-8">
+        {/* Desktop Tabs */}
+        <div className="hidden lg:flex gap-6 overflow-x-auto custom-scrollbar px-4 lg:px-8">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = activeTab === tab.id;
@@ -727,7 +904,7 @@ export const BusinessVision = () => {
                   "flex items-center gap-2 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                   active 
                     ? "border-blue-600 text-blue-600 dark:text-blue-400" 
-                    : "border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-slate-300"
+                    : "border-transparent text-slate-50 hover:text-slate-900 dark:hover:text-slate-300"
                 )}
               >
                 <Icon size={16} className={cn(active ? "text-blue-600 dark:text-blue-400" : "text-slate-400")} />
@@ -735,6 +912,21 @@ export const BusinessVision = () => {
               </button>
             );
           })}
+        </div>
+        {/* Mobile Dropdown Navigation */}
+        <div className="lg:hidden p-3 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 shrink-0">Página:</span>
+          <select 
+            value={activeTab} 
+            onChange={(e) => setActiveTab(e.target.value)}
+            className="flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 dark:text-slate-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {tabs.map((tab) => (
+              <option key={tab.id} value={tab.id}>
+                {tab.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -1554,19 +1746,39 @@ export const BusinessVision = () => {
         </div>
       )}
       
+            {(() => {
+              const currentIndex = tabs.findIndex(t => t.id === activeTab);
+              const prevTab = currentIndex > 0 ? tabs[currentIndex - 1] : null;
+              const nextTab = currentIndex < tabs.length - 1 ? tabs[currentIndex + 1] : null;
+              return (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-200 dark:border-slate-800 mt-8">
+                  {prevTab ? (
+                    <Button variant="outline" onClick={() => setActiveTab(prevTab.id)} className="w-full sm:w-auto justify-center font-bold">
+                      <ArrowLeft size={16} className="mr-2" /> Anterior: {prevTab.label}
+                    </Button>
+                  ) : <div className="hidden sm:block" />}
+                  {nextTab ? (
+                    <Button variant="primary" onClick={() => setActiveTab(nextTab.id)} className="w-full sm:w-auto justify-center font-bold shadow-md">
+                      Próxima: {nextTab.label} <ArrowRight size={16} className="ml-2" />
+                    </Button>
+                  ) : <div className="hidden sm:block" />}
+                </div>
+              );
+            })()}
+
           </motion.div>
         </AnimatePresence>
       </div>
 
       {/* Assistente Imersivo do Plano de Negócio em Tela Cheia */}
       <AnimatePresence>
-        {isWizardOpen && (
+        {isWizardOpen && createPortal(
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="fixed inset-0 z-50 bg-slate-950 text-white flex flex-col justify-between overflow-y-auto"
+            className="fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col justify-between overflow-y-auto"
           >
             {/* Top Bar / Progress */}
             <div className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 sm:px-12 py-4 flex items-center justify-between gap-4">
@@ -1696,19 +1908,20 @@ export const BusinessVision = () => {
                 )}
               </div>
             </div>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 
       {/* Apresentação Imersiva da Visão Geral em Tela Cheia */}
       <AnimatePresence>
-        {isPresentationOpen && (
+        {isPresentationOpen && createPortal(
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="fixed inset-0 z-50 bg-slate-950 text-white flex flex-col justify-between overflow-y-auto"
+            className="fixed inset-0 z-[9999] bg-slate-950 text-white flex flex-col justify-between overflow-y-auto"
           >
             {/* Top Bar / Progress */}
             <div className="sticky top-0 z-10 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 sm:px-12 py-4 flex items-center justify-between gap-4">
@@ -2009,7 +2222,8 @@ export const BusinessVision = () => {
                 )}
               </div>
             </div>
-          </motion.div>
+          </motion.div>,
+          document.body
         )}
       </AnimatePresence>
 
@@ -2082,6 +2296,36 @@ export const BusinessVision = () => {
 
           <div className="print:block hidden pt-8 border-t text-center text-xs text-slate-400">
             Documento confidencial gerado pelo sistema ERP Pra Você. Uso restrito para planejamento estratégico.
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={!!stepToDelete}
+        onClose={() => setStepToDelete(null)}
+        title="Confirmar Exclusão"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setStepToDelete(null)} disabled={isDeletingStep}>
+              Cancelar
+            </Button>
+            <Button variant="danger" onClick={handleConfirmDeleteStep} isLoading={isDeletingStep}>
+              Sim, Excluir
+            </Button>
+          </>
+        }
+      >
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-red-50 dark:bg-red-500/10 text-red-600 rounded-full shrink-0">
+            <AlertTriangle size={24} />
+          </div>
+          <div>
+            <p className="text-slate-800 dark:text-slate-200 font-semibold">
+              Você tem certeza que deseja excluir este próximo passo?
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Esta ação removerá o item permanentemente da sua lista de planejamento.
+            </p>
           </div>
         </div>
       </Modal>
