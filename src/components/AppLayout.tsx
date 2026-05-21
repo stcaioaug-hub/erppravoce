@@ -26,12 +26,15 @@ import {
   Sun,
   Moon,
   BriefcaseBusiness,
-  Sparkles
+  Sparkles,
+  SlidersHorizontal
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { currentUser } from '../data/mocks';
 import { motion } from 'motion/react';
 import { useTheme } from '../contexts/ThemeContext';
+import { ClientAppProfile, ResolvedFeature } from '../types';
+import { isModuleVisibleForClient } from '../lib/featureCustomizationRepository';
 
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -46,6 +49,8 @@ const MENU_ITEMS = [
   { id: 'fornecedores', label: 'Fornecedores', icon: Truck },
   { id: 'relatorios', label: 'Relatórios', icon: BarChart3 },
   { id: 'onboarding_insights', label: 'Respostas & Insights', icon: Sparkles },
+  { id: 'client_types', label: 'Tipos de Clientes', icon: SlidersHorizontal },
+  { id: 'feature_explorer', label: 'Explorar Features', icon: Sparkles },
   { id: 'armazenamento', label: 'Armazenamento', icon: HardDrive },
   { id: 'business_vision', label: 'Plano de Negócio', icon: BriefcaseBusiness },
   { id: 'configuracoes', label: 'Configurações', icon: Settings },
@@ -55,11 +60,13 @@ interface AppLayoutProps {
   currentModule: string;
   onNavigate: (module: string) => void;
   userRole: 'admin' | 'client' | 'business' | 'onboarding' | null;
+  clientFeatures?: ResolvedFeature[] | null;
+  clientProfile?: ClientAppProfile | null;
   onLogout?: () => void;
   children: React.ReactNode;
 }
 
-export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate, userRole, onLogout, children }) => {
+export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate, userRole, clientFeatures = null, clientProfile = null, onLogout, children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -74,7 +81,24 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
       return null;
     }
   })();
-  const businessType = onboardingData?.businessType || '';
+  const businessType = clientProfile?.businessType || onboardingData?.businessType || '';
+
+  const isMenuItemVisible = (item: typeof MENU_ITEMS[number]) => {
+    if (item.id === 'onboarding_insights' || item.id === 'client_types') {
+      return userRole === 'admin';
+    }
+    if (item.id === 'feature_explorer') {
+      return userRole === 'client';
+    }
+    if (userRole === 'client') {
+      if (['business_vision'].includes(item.id)) return false;
+      return isModuleVisibleForClient(item.id, clientFeatures);
+    }
+    return true;
+  };
+
+  const visibleMenuItems = MENU_ITEMS.filter(isMenuItemVisible);
+  const pdvVisible = visibleMenuItems.some((item) => item.id === 'pdv');
 
   const getCustomLabel = (id: string, defaultLabel: string) => {
     if (!businessType) return defaultLabel;
@@ -150,14 +174,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
           </div>
 
           <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
-            {MENU_ITEMS.filter(item => {
-              if (item.id === 'onboarding_insights') {
-                return userRole === 'admin';
-              }
-              // Se cliente, ocultar abas exclusivas de admin
-              if (userRole === 'client' && ['relatorios', 'business_vision'].includes(item.id)) return false; 
-              return true;
-            }).map((item) => {
+            {visibleMenuItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentModule === item.id;
               
@@ -275,13 +292,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
               </button>
 
-              <button 
-                onClick={() => onNavigate('pdv')}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm transition-colors"
-              >
-                <ShoppingCart size={16} />
-                Nova Venda
-              </button>
+              {pdvVisible && (
+                <button 
+                  onClick={() => onNavigate('pdv')}
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 shadow-sm transition-colors"
+                >
+                  <ShoppingCart size={16} />
+                  Nova Venda
+                </button>
+              )}
             </div>
           </header>
         )}
@@ -296,7 +315,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
       </div>
 
       {/* Floating Action Button (Mobile) - Nova Venda */}
-      {currentModule !== 'pdv' && (
+      {currentModule !== 'pdv' && pdvVisible && (
         <div className="lg:hidden fixed bottom-20 right-4 z-40">
           <button 
             onClick={() => onNavigate('pdv')}
@@ -311,18 +330,21 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
       {/* Bottom Navigation Bar - Mobile Only */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 px-2 flex items-center justify-between transition-colors duration-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)] pb-[env(safe-area-inset-bottom)]">
         {[
-          { id: 'pdv', label: 'PDV', icon: Monitor },
-          { id: 'vendas', label: 'Vendas', icon: ShoppingCart },
-          { id: 'dashboard', label: 'Início', icon: LayoutDashboard },
-          { id: 'produtos', label: 'Produtos', icon: Package },
+          ...[
+            { id: 'pdv', label: 'PDV', icon: Monitor },
+            { id: 'vendas', label: 'Vendas', icon: ShoppingCart },
+            { id: 'dashboard', label: 'Início', icon: LayoutDashboard },
+            { id: 'produtos', label: 'Produtos', icon: Package },
+          ].filter((item) => item.id === 'dashboard' || visibleMenuItems.some((menuItem) => menuItem.id === item.id)),
           { id: 'mais', label: 'Mais', icon: Menu, action: () => setMobileMenuOpen(true) },
         ].map((item) => {
           const Icon = item.icon;
           const isActive = item.id === 'mais' ? mobileMenuOpen : currentModule === item.id;
+          const action = 'action' in item ? item.action : undefined;
           return (
             <button
               key={item.id}
-              onClick={item.action ? item.action : () => onNavigate(item.id)}
+              onClick={action ? action : () => onNavigate(item.id)}
               className={cn(
                 "flex flex-col items-center justify-center p-2 my-1 rounded-xl transition-all min-w-[50px] flex-1",
                 isActive 
@@ -372,13 +394,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
             </div>
             
             <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
-              {MENU_ITEMS.filter(item => {
-                if (item.id === 'onboarding_insights') {
-                  return userRole === 'admin';
-                }
-                if (userRole === 'client' && ['relatorios', 'business_vision'].includes(item.id)) return false; 
-                return true;
-              }).map((item) => {
+              {visibleMenuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = currentModule === item.id;
                 return (

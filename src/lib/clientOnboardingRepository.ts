@@ -78,7 +78,7 @@ export async function fetchClientOnboardings(): Promise<ClientOnboarding[]> {
   return (data ?? []).map(mapRow);
 }
 
-export async function saveClientOnboarding(input: Omit<ClientOnboarding, 'id' | 'createdAt'>): Promise<void> {
+export async function saveClientOnboarding(input: Omit<ClientOnboarding, 'id' | 'createdAt'>): Promise<string> {
   if (!supabase) {
     // Save locally to mock database
     const existing = await fetchClientOnboardings();
@@ -88,10 +88,10 @@ export async function saveClientOnboarding(input: Omit<ClientOnboarding, 'id' | 
       createdAt: new Date(),
     };
     localStorage.setItem('varejoflow_client_onboardings_mock', JSON.stringify([newEntry, ...existing]));
-    return;
+    return newEntry.id;
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('client_onboarding')
     .insert({
       client_name: input.clientName,
@@ -101,9 +101,12 @@ export async function saveClientOnboarding(input: Omit<ClientOnboarding, 'id' | 
       process: input.process,
       experience: input.experience,
       goal: input.goal,
-    });
+    })
+    .select('id')
+    .single();
 
   if (error) throw error;
+  return data.id as string;
 }
 
 export async function deleteClientOnboarding(id: string): Promise<void> {

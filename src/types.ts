@@ -196,3 +196,73 @@ export interface ClientOnboarding {
   createdAt: Date;
 }
 
+// === FEATURE CUSTOMIZATION TYPES ===
+
+export type ClientTypeId =
+  | 'varejo'
+  | 'mercadinho'
+  | 'restaurante'
+  | 'servicos'
+  | 'industria'
+  | 'distribuidora'
+  | 'beleza'
+  | 'ecommerce';
+
+export type ClientFeatureAccessMode = 'limited' | 'full' | 'locked';
+
+export interface AppFeature {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  moduleId?: string;
+  iconName: string;
+  isCustomerVisible: boolean;
+  isFuture: boolean;
+}
+
+export interface ClientTypeArchetype {
+  id: ClientTypeId;
+  label: string;
+  shortLabel: string;
+  subtitle: string;
+  description: string;
+  previewTitle: string;
+  previewSubtitle: string;
+  iconName: string;
+}
+
+export interface ClientTypeFeatureDefault {
+  clientTypeId: ClientTypeId;
+  featureId: string;
+  enabled: boolean;
+  optional: boolean;
+}
+
+export interface ClientAppProfile {
+  id: string;
+  onboardingId?: string;
+  clientName: string;
+  companyName: string;
+  businessType: ClientTypeId;
+  accessMode: ClientFeatureAccessMode;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ClientFeatureOverride {
+  profileId: string;
+  featureId: string;
+  enabled: boolean;
+  source: 'client' | 'admin';
+  updatedAt: Date;
+}
+
+export interface ResolvedFeature {
+  feature: AppFeature;
+  enabled: boolean;
+  defaultEnabled: boolean;
+  optional: boolean;
+  overridden: boolean;
+  canClientToggle: boolean;
+}

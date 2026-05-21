@@ -1,0 +1,422 @@
+import {
+  AppFeature,
+  ClientTypeArchetype,
+  ClientTypeFeatureDefault,
+  ClientTypeId,
+} from '../types';
+
+export const CLIENT_TYPE_ARCHETYPES: ClientTypeArchetype[] = [
+  {
+    id: 'varejo',
+    label: 'Varejo (Moda & Lojas)',
+    shortLabel: 'Varejo',
+    subtitle: 'Loja fisica, moda, calcados e presentes',
+    description: 'Modelo focado em PDV, giro de grade, canais digitais e relacionamento com clientes.',
+    previewTitle: 'App de Varejo & Moda',
+    previewSubtitle: 'PDV rapido, grade de produtos, estoque e relacionamento comercial.',
+    iconName: 'ShoppingBag',
+  },
+  {
+    id: 'mercadinho',
+    label: 'Mercadinho & Mercearia',
+    shortLabel: 'Mercado',
+    subtitle: 'Frente de caixa, validade e reposicao',
+    description: 'Modelo para alto volume de itens, leitura por codigo de barras e compras recorrentes.',
+    previewTitle: 'App de Mercadinho',
+    previewSubtitle: 'Caixa agil, controle de validade, compras e estoque sempre visiveis.',
+    iconName: 'ShoppingCart',
+  },
+  {
+    id: 'restaurante',
+    label: 'Restaurante & Delivery',
+    shortLabel: 'Restaurante',
+    subtitle: 'Comandas, cozinha e pedidos',
+    description: 'Modelo para comandas, delivery, insumos e acompanhamento de pedidos em preparo.',
+    previewTitle: 'App de Alimentacao',
+    previewSubtitle: 'Comandas, pedidos, delivery, insumos e fechamento de caixa diario.',
+    iconName: 'Utensils',
+  },
+  {
+    id: 'servicos',
+    label: 'Prestacao de Servicos',
+    shortLabel: 'Servicos',
+    subtitle: 'Agenda, OS, contratos e recorrencia',
+    description: 'Modelo para prestadores, professores, assistencias, consultorias e operacoes sob demanda.',
+    previewTitle: 'App de Servicos',
+    previewSubtitle: 'Clientes, agenda, ordens de servico, cobrancas e recorrencia.',
+    iconName: 'Wrench',
+  },
+  {
+    id: 'industria',
+    label: 'Industria & Confeccao',
+    shortLabel: 'Industria',
+    subtitle: 'Producao, insumos e etapas',
+    description: 'Modelo para fabricacao propria, fichas tecnicas, materia-prima e etapas produtivas.',
+    previewTitle: 'App Industrial',
+    previewSubtitle: 'Produtos, compras, insumos, producao e visao financeira integrada.',
+    iconName: 'Factory',
+  },
+  {
+    id: 'distribuidora',
+    label: 'Distribuidora & Atacado',
+    shortLabel: 'Distribuidora',
+    subtitle: 'Atacado, vendedores e rotas',
+    description: 'Modelo para pedidos externos, carteira de clientes, estoque, atacado e logistica.',
+    previewTitle: 'App de Distribuidora',
+    previewSubtitle: 'Vendas externas, estoque, compras, clientes e rotas de entrega.',
+    iconName: 'Truck',
+  },
+  {
+    id: 'beleza',
+    label: 'Salao & Estetica',
+    shortLabel: 'Beleza',
+    subtitle: 'Agenda, comissoes e clientes',
+    description: 'Modelo para saloes, clinicas, estetica, profissionais, produtos e agenda diaria.',
+    previewTitle: 'App de Beleza & Estetica',
+    previewSubtitle: 'Agenda, atendimento, comissoes, clientes e produtos de apoio.',
+    iconName: 'Sparkles',
+  },
+  {
+    id: 'ecommerce',
+    label: 'E-commerce & Digital',
+    shortLabel: 'E-commerce',
+    subtitle: 'Produtos, estoque e canais online',
+    description: 'Modelo para vendas digitais, catalogo, estoque, clientes e integracoes futuras.',
+    previewTitle: 'App de E-commerce',
+    previewSubtitle: 'Catalogo, pedidos, estoque, clientes, relatorios e integracoes.',
+    iconName: 'Globe',
+  },
+];
+
+export const APP_FEATURES: AppFeature[] = [
+  {
+    id: 'pdv',
+    title: 'Caixa / PDV',
+    description: 'Aba operacional para vender, cobrar e registrar pedidos rapidamente.',
+    category: 'Abas principais',
+    moduleId: 'pdv',
+    iconName: 'Monitor',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'vendas',
+    title: 'Vendas',
+    description: 'Historico de vendas, pedidos e acompanhamento comercial.',
+    category: 'Abas principais',
+    moduleId: 'vendas',
+    iconName: 'ShoppingCart',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'compras',
+    title: 'Compras',
+    description: 'Controle de compras, entrada de produtos e pedidos para fornecedores.',
+    category: 'Abas principais',
+    moduleId: 'compras',
+    iconName: 'ShoppingBag',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'produtos',
+    title: 'Produtos',
+    description: 'Catalogo de produtos, itens, servicos e precificacao.',
+    category: 'Abas principais',
+    moduleId: 'produtos',
+    iconName: 'Package',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'estoque',
+    title: 'Estoque',
+    description: 'Movimentacao, saldo fisico, alertas e reposicao.',
+    category: 'Abas principais',
+    moduleId: 'estoque',
+    iconName: 'ArrowRightLeft',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'financeiro',
+    title: 'Financeiro',
+    description: 'Contas, fluxo de caixa, recebimentos e despesas.',
+    category: 'Abas principais',
+    moduleId: 'financeiro',
+    iconName: 'Wallet',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'tributario',
+    title: 'Tributario',
+    description: 'Configuracoes fiscais, impostos e organizacao tributaria.',
+    category: 'Abas principais',
+    moduleId: 'tributario',
+    iconName: 'Receipt',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'clientes',
+    title: 'Clientes',
+    description: 'Carteira, contatos, historico e relacionamento com consumidores.',
+    category: 'Abas principais',
+    moduleId: 'clientes',
+    iconName: 'Users',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'fornecedores',
+    title: 'Fornecedores',
+    description: 'Cadastro e relacionamento com fornecedores e parceiros.',
+    category: 'Abas principais',
+    moduleId: 'fornecedores',
+    iconName: 'Truck',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'relatorios',
+    title: 'Relatorios',
+    description: 'Graficos, indicadores e analises do negocio.',
+    category: 'Abas principais',
+    moduleId: 'relatorios',
+    iconName: 'BarChart3',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'armazenamento',
+    title: 'Armazenamento',
+    description: 'Controle de uso, arquivos e limites da conta.',
+    category: 'Abas principais',
+    moduleId: 'armazenamento',
+    iconName: 'HardDrive',
+    isCustomerVisible: true,
+    isFuture: false,
+  },
+  {
+    id: 'grade_produtos',
+    title: 'Grade de produtos',
+    description: 'Variações por tamanho, cor e combinacoes de SKU.',
+    category: 'Operacao especializada',
+    iconName: 'Layers',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'crm_fidelidade',
+    title: 'CRM e fidelidade',
+    description: 'Historico, segmentacao, recompra e relacionamento com clientes.',
+    category: 'Crescimento',
+    iconName: 'HeartHandshake',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'canais_digitais',
+    title: 'Canais digitais',
+    description: 'Venda assistida por WhatsApp, Instagram e catalogo digital.',
+    category: 'Crescimento',
+    iconName: 'Globe',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'codigo_barras',
+    title: 'Codigo de barras',
+    description: 'Leitura rapida no caixa e organizacao por codigos.',
+    category: 'Operacao especializada',
+    iconName: 'Barcode',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'validade_lotes',
+    title: 'Validade e lotes',
+    description: 'Controle de vencimento, lote e perdas de produtos.',
+    category: 'Operacao especializada',
+    iconName: 'Calendar',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'reposicao_fornecedores',
+    title: 'Reposicao inteligente',
+    description: 'Sugestoes de compras e reposicao por giro de estoque.',
+    category: 'Automacao',
+    iconName: 'RefreshCw',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'comandas_mesas',
+    title: 'Mesas e comandas',
+    description: 'Controle visual de mesas, comandas e atendimento no salao.',
+    category: 'Operacao especializada',
+    iconName: 'ClipboardList',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'delivery',
+    title: 'Delivery',
+    description: 'Pedidos, entregas, motoboys e taxas de entrega.',
+    category: 'Operacao especializada',
+    iconName: 'Bike',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'cozinha',
+    title: 'Painel de cozinha',
+    description: 'Fila de preparo, status de pedidos e insumos criticos.',
+    category: 'Operacao especializada',
+    iconName: 'Flame',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'agenda',
+    title: 'Agenda',
+    description: 'Horarios, profissionais, clientes e disponibilidade.',
+    category: 'Operacao especializada',
+    iconName: 'Clock',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'ordens_servico',
+    title: 'Ordens de servico',
+    description: 'OS, laudos, orcamentos e execucao de servicos.',
+    category: 'Operacao especializada',
+    iconName: 'FileText',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'recorrencia',
+    title: 'Recorrencia',
+    description: 'Planos, contratos, mensalidades e cobrancas recorrentes.',
+    category: 'Automacao',
+    iconName: 'Repeat',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'comissoes',
+    title: 'Comissoes',
+    description: 'Comissao por profissional, vendedor, servico ou venda.',
+    category: 'Automacao',
+    iconName: 'Award',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'producao_pcp',
+    title: 'Producao / PCP',
+    description: 'Ordens de producao, etapas, insumos e acompanhamento fabril.',
+    category: 'Operacao especializada',
+    iconName: 'Factory',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'ficha_tecnica',
+    title: 'Ficha tecnica',
+    description: 'Receitas, composicao de produto, custo real e baixa de insumos.',
+    category: 'Operacao especializada',
+    iconName: 'ClipboardList',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'rotas_entrega',
+    title: 'Rotas de entrega',
+    description: 'Roteirizacao, separacao de pedidos e carregamento por regiao.',
+    category: 'Operacao especializada',
+    iconName: 'MapPin',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+  {
+    id: 'ecommerce_integracoes',
+    title: 'Integracoes e-commerce',
+    description: 'Sincronizacao futura com marketplaces, loja virtual e canais externos.',
+    category: 'Integracoes',
+    iconName: 'PlugZap',
+    isCustomerVisible: true,
+    isFuture: true,
+  },
+];
+
+const defaultsByType: Record<ClientTypeId, { enabled: string[]; optional: string[] }> = {
+  varejo: {
+    enabled: ['pdv', 'vendas', 'produtos', 'estoque', 'clientes', 'financeiro', 'relatorios', 'grade_produtos', 'crm_fidelidade', 'canais_digitais'],
+    optional: ['compras', 'fornecedores', 'tributario', 'armazenamento', 'ecommerce_integracoes'],
+  },
+  mercadinho: {
+    enabled: ['pdv', 'vendas', 'produtos', 'estoque', 'compras', 'fornecedores', 'financeiro', 'tributario', 'codigo_barras', 'validade_lotes', 'reposicao_fornecedores'],
+    optional: ['clientes', 'relatorios', 'armazenamento', 'crm_fidelidade'],
+  },
+  restaurante: {
+    enabled: ['pdv', 'vendas', 'produtos', 'estoque', 'financeiro', 'clientes', 'comandas_mesas', 'delivery', 'cozinha'],
+    optional: ['compras', 'fornecedores', 'relatorios', 'tributario', 'armazenamento', 'reposicao_fornecedores'],
+  },
+  servicos: {
+    enabled: ['vendas', 'clientes', 'financeiro', 'relatorios', 'agenda', 'ordens_servico', 'recorrencia'],
+    optional: ['pdv', 'produtos', 'estoque', 'compras', 'fornecedores', 'tributario', 'armazenamento', 'comissoes'],
+  },
+  industria: {
+    enabled: ['produtos', 'estoque', 'compras', 'fornecedores', 'vendas', 'financeiro', 'producao_pcp', 'ficha_tecnica'],
+    optional: ['pdv', 'clientes', 'relatorios', 'tributario', 'armazenamento', 'reposicao_fornecedores'],
+  },
+  distribuidora: {
+    enabled: ['vendas', 'produtos', 'estoque', 'compras', 'fornecedores', 'clientes', 'financeiro', 'rotas_entrega'],
+    optional: ['pdv', 'relatorios', 'tributario', 'armazenamento', 'comissoes', 'codigo_barras'],
+  },
+  beleza: {
+    enabled: ['pdv', 'vendas', 'clientes', 'financeiro', 'produtos', 'agenda', 'comissoes', 'crm_fidelidade'],
+    optional: ['estoque', 'compras', 'fornecedores', 'relatorios', 'tributario', 'armazenamento', 'recorrencia'],
+  },
+  ecommerce: {
+    enabled: ['vendas', 'produtos', 'estoque', 'clientes', 'financeiro', 'relatorios', 'canais_digitais', 'ecommerce_integracoes'],
+    optional: ['pdv', 'compras', 'fornecedores', 'tributario', 'armazenamento', 'codigo_barras', 'reposicao_fornecedores'],
+  },
+};
+
+export const CLIENT_TYPE_FEATURE_DEFAULTS: ClientTypeFeatureDefault[] = CLIENT_TYPE_ARCHETYPES.flatMap((type) => {
+  const settings = defaultsByType[type.id];
+  return APP_FEATURES.map((feature) => ({
+    clientTypeId: type.id,
+    featureId: feature.id,
+    enabled: settings.enabled.includes(feature.id),
+    optional: settings.optional.includes(feature.id),
+  }));
+});
+
+export const MENU_FEATURE_BY_MODULE_ID = APP_FEATURES.reduce<Record<string, string>>((acc, feature) => {
+  if (feature.moduleId) acc[feature.moduleId] = feature.id;
+  return acc;
+}, {});
+
+export const ALWAYS_VISIBLE_CLIENT_MODULES = ['dashboard', 'configuracoes', 'feature_explorer'];
+
+export const normalizeClientType = (value?: string | null): ClientTypeId => {
+  const maybe = String(value ?? '').trim().toLowerCase();
+  if (CLIENT_TYPE_ARCHETYPES.some((type) => type.id === maybe)) return maybe as ClientTypeId;
+  return 'servicos';
+};
+
+export const getArchetype = (id?: string | null) => {
+  const normalized = normalizeClientType(id);
+  return CLIENT_TYPE_ARCHETYPES.find((type) => type.id === normalized) ?? CLIENT_TYPE_ARCHETYPES[0];
+};
+
+export const getDefaultSettingsForType = (clientTypeId: ClientTypeId) => {
+  return CLIENT_TYPE_FEATURE_DEFAULTS.filter((item) => item.clientTypeId === clientTypeId);
+};

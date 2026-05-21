@@ -3,13 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { UserRoleSelection } from './components/UserRoleSelection';
 import { saveClientOnboarding } from './lib/clientOnboardingRepository';
+import { createClientAppProfileFromOnboarding, isModuleVisibleForClient, resolveClientFeatures } from './lib/featureCustomizationRepository';
 import { LogIn, Moon, Sun } from 'lucide-react';
 import { Button, Input, Card } from './components/ui';
 import { useTheme } from './contexts/ThemeContext';
+import { ClientAppProfile, ResolvedFeature } from './types';
 
 const Dashboard = lazy(() => import('./modules/Dashboard').then((module) => ({ default: module.Dashboard })));
 const PDV = lazy(() => import('./modules/PDV').then((module) => ({ default: module.PDV })));
@@ -27,6 +29,8 @@ const Storage = lazy(() => import('./modules/Storage').then((module) => ({ defau
 const BusinessVision = lazy(() => import('./modules/BusinessVision').then((module) => ({ default: module.BusinessVision })));
 const Onboarding = lazy(() => import('./modules/Onboarding').then((module) => ({ default: module.Onboarding })));
 const OnboardingInsights = lazy(() => import('./modules/OnboardingInsights').then((module) => ({ default: module.OnboardingInsights })));
+const ClientTypesAdmin = lazy(() => import('./modules/ClientTypesAdmin').then((module) => ({ default: module.ClientTypesAdmin })));
+const FeatureExplorer = lazy(() => import('./modules/FeatureExplorer').then((module) => ({ default: module.FeatureExplorer })));
 
 const ModuleLoading = () => (
   <div className="flex min-h-[320px] items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -39,7 +43,38 @@ export default function App() {
   const [currentModule, setCurrentModule] = useState('dashboard');
   const [loginForm, setLoginForm] = useState({ email: 'admin@erppravoce.com.br', password: 'admin' });
   const [userRole, setUserRole] = useState<'admin' | 'client' | 'business' | 'onboarding' | null>(null);
+  const [clientFeatures, setClientFeatures] = useState<ResolvedFeature[] | null>(null);
+  const [clientProfile, setClientProfile] = useState<ClientAppProfile | null>(null);
   const { theme, toggleTheme } = useTheme();
+
+  const loadClientFeatureState = useCallback(async () => {
+    if (userRole !== 'client') {
+      setClientFeatures(null);
+      setClientProfile(null);
+      return;
+    }
+
+    try {
+      const result = await resolveClientFeatures();
+      setClientFeatures(result.features);
+      setClientProfile(result.profile);
+    } catch (error) {
+      console.error('Erro ao carregar features do cliente:', error);
+      setClientFeatures([]);
+      setClientProfile(null);
+    }
+  }, [userRole]);
+
+  useEffect(() => {
+    loadClientFeatureState();
+  }, [loadClientFeatureState]);
+
+  useEffect(() => {
+    if (userRole !== 'client' || !clientFeatures) return;
+    if (!isModuleVisibleForClient(currentModule, clientFeatures)) {
+      setCurrentModule('dashboard');
+    }
+  }, [clientFeatures, currentModule, userRole]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +105,10 @@ export default function App() {
         return <Reports />;
       case 'onboarding_insights':
         return <OnboardingInsights />;
+      case 'client_types':
+        return <ClientTypesAdmin />;
+      case 'feature_explorer':
+        return <FeatureExplorer onChanged={loadClientFeatureState} />;
       case 'tributario':
         return <Tributary />;
       case 'armazenamento':
@@ -97,10 +136,16 @@ export default function App() {
         <Onboarding 
           onComplete={async (data) => {
             localStorage.setItem('varejoflow_onboarding', JSON.stringify(data));
+            let onboardingId: string | null = null;
             try {
-              await saveClientOnboarding(data);
+              onboardingId = await saveClientOnboarding(data);
             } catch (e) {
               console.error('Erro ao salvar onboarding no Supabase:', e);
+            }
+            try {
+              await createClientAppProfileFromOnboarding(data, onboardingId);
+            } catch (e) {
+              console.error('Erro ao criar perfil de app customizado:', e);
             }
             setUserRole('client');
             setCurrentModule('dashboard');
@@ -190,6 +235,8 @@ export default function App() {
       currentModule={currentModule} 
       onNavigate={setCurrentModule} 
       userRole={userRole}
+      clientFeatures={clientFeatures}
+      clientProfile={clientProfile}
       onLogout={() => {
         setIsAuthenticated(false);
         setUserRole(null);
