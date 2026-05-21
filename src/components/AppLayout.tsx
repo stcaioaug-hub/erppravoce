@@ -25,7 +25,8 @@ import {
   HardDrive,
   Sun,
   Moon,
-  BriefcaseBusiness
+  BriefcaseBusiness,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { currentUser } from '../data/mocks';
@@ -44,6 +45,7 @@ const MENU_ITEMS = [
   { id: 'clientes', label: 'Clientes', icon: Users },
   { id: 'fornecedores', label: 'Fornecedores', icon: Truck },
   { id: 'relatorios', label: 'Relatórios', icon: BarChart3 },
+  { id: 'onboarding_insights', label: 'Respostas & Insights', icon: Sparkles },
   { id: 'armazenamento', label: 'Armazenamento', icon: HardDrive },
   { id: 'business_vision', label: 'Plano de Negócio', icon: BriefcaseBusiness },
   { id: 'configuracoes', label: 'Configurações', icon: Settings },
@@ -149,6 +151,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
 
           <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
             {MENU_ITEMS.filter(item => {
+              if (item.id === 'onboarding_insights') {
+                return userRole === 'admin';
+              }
               // Se cliente, ocultar abas exclusivas de admin
               if (userRole === 'client' && ['relatorios', 'business_vision'].includes(item.id)) return false; 
               return true;
@@ -368,6 +373,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
             
             <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
               {MENU_ITEMS.filter(item => {
+                if (item.id === 'onboarding_insights') {
+                  return userRole === 'admin';
+                }
                 if (userRole === 'client' && ['relatorios', 'business_vision'].includes(item.id)) return false; 
                 return true;
               }).map((item) => {

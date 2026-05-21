@@ -61,6 +61,8 @@ interface OnboardingProps {
 }
 
 export interface OnboardingData {
+  clientName: string;
+  companyName: string;
   businessType: string;
   need: string;
   process: string;
@@ -84,6 +86,8 @@ const BUSINESS_TYPES = [
 export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) => {
   const [step, setStep] = useState(1);
   const [selections, setSelections] = useState<OnboardingData>({
+    clientName: '',
+    companyName: '',
     businessType: '',
     need: '',
     process: '',
@@ -96,6 +100,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
   const [customProcessName, setCustomProcessName] = useState('');
   const [customExperienceName, setCustomExperienceName] = useState('');
   const [customGoalName, setCustomGoalName] = useState('');
+
 
   const [isFinishing, setIsFinishing] = useState(false);
   const [finishingTicks, setFinishingTicks] = useState<string[]>([]);
@@ -237,7 +242,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
   };
 
   const handleNext = () => {
-    if (step < 5) {
+    if (step < 6) {
       setStep(prev => prev + 1);
     } else {
       startFinishing();
@@ -253,25 +258,31 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
   };
 
   const handleSkip = () => {
-    // Fill in placeholders if skipped
     const currentKey = getCurrentStepKey();
     let defaultValue = 'skipped';
     
-    if (currentKey === 'businessType') {
-      defaultValue = 'outro';
-    } else if (currentKey === 'need') {
-      defaultValue = getNeedsOptions()[0]?.id || 'financeiro_simples';
-    } else if (currentKey === 'process') {
-      defaultValue = getProcessOptions()[0]?.id || 'simples_pdv';
-    } else if (currentKey === 'experience') {
-      defaultValue = 'intermediario';
-    } else if (currentKey === 'goal') {
-      defaultValue = 'organizacao';
+    if (currentKey === 'clientName') {
+      setSelections(prev => ({
+        ...prev,
+        clientName: prev.clientName.trim() || 'Cliente Convidado',
+        companyName: prev.companyName.trim() || 'Minha Empresa'
+      }));
+    } else {
+      if (currentKey === 'businessType') {
+        defaultValue = 'outro';
+      } else if (currentKey === 'need') {
+        defaultValue = getNeedsOptions()[0]?.id || 'financeiro_simples';
+      } else if (currentKey === 'process') {
+        defaultValue = getProcessOptions()[0]?.id || 'simples_pdv';
+      } else if (currentKey === 'experience') {
+        defaultValue = 'intermediario';
+      } else if (currentKey === 'goal') {
+        defaultValue = 'organizacao';
+      }
+      setSelections(prev => ({ ...prev, [currentKey]: defaultValue }));
     }
-
-    setSelections(prev => ({ ...prev, [currentKey]: defaultValue }));
     
-    if (step < 5) {
+    if (step < 6) {
       setStep(prev => prev + 1);
     } else {
       startFinishing();
@@ -280,12 +291,13 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
 
   const getCurrentStepKey = (): keyof OnboardingData => {
     switch (step) {
-      case 1: return 'businessType';
-      case 2: return 'need';
-      case 3: return 'process';
-      case 4: return 'experience';
-      case 5: return 'goal';
-      default: return 'businessType';
+      case 1: return 'clientName';
+      case 2: return 'businessType';
+      case 3: return 'need';
+      case 4: return 'process';
+      case 5: return 'experience';
+      case 6: return 'goal';
+      default: return 'clientName';
     }
   };
 
@@ -310,6 +322,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
 
   const isNextDisabled = () => {
     const currentKey = getCurrentStepKey();
+    if (currentKey === 'clientName') {
+      return !selections.clientName.trim() || !selections.companyName.trim();
+    }
     const value = selections[currentKey];
     if (!value || !value.trim()) return true;
     if (currentKey === 'businessType' && value === 'outro' && !customBusinessName.trim()) {
@@ -408,22 +423,24 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
 
   const getStepTitle = () => {
     switch (step) {
-      case 1: return 'Qual é o seu negócio?';
-      case 2: return 'Qual sua maior necessidade hoje?';
-      case 3: return 'Seu processo produtivo da forma que você vê:';
-      case 4: return 'Seu nível de experiência com sistemas:';
-      case 5: return 'Qual a sua principal meta nos próximos 3 meses?';
+      case 1: return 'Quem é você e qual sua empresa?';
+      case 2: return 'Qual é o seu negócio?';
+      case 3: return 'Qual sua maior necessidade hoje?';
+      case 4: return 'Seu processo produtivo da forma que você vê:';
+      case 5: return 'Seu nível de experiência com sistemas:';
+      case 6: return 'Qual a sua principal meta nos próximos 3 meses?';
       default: return '';
     }
   };
 
   const getStepSubtitle = () => {
     switch (step) {
-      case 1: return 'Selecione a categoria que melhor define a sua empresa para adaptarmos o sistema.';
-      case 2: return 'Isso prioriza os widgets e relatórios mais importantes no seu painel principal.';
-      case 3: return 'Mapeamos o fluxo de trabalho para que as etapas do ERP fiquem naturais para você.';
-      case 4: return 'Nos ajuda a calibrar a densidade de informações e atalhos na tela.';
-      case 5: return 'Vamos colocar um indicador de acompanhamento dessa meta no topo do seu painel.';
+      case 1: return 'Insira seu nome e o nome da sua empresa para começarmos a configurar seu ERP.';
+      case 2: return 'Selecione a categoria que melhor define a sua empresa para adaptarmos o sistema.';
+      case 3: return 'Isso prioriza os widgets e relatórios mais importantes no seu painel principal.';
+      case 4: return 'Mapeamos o fluxo de trabalho para que as etapas do ERP fiquem naturais para você.';
+      case 5: return 'Nos ajuda a calibrar a densidade de informações e atalhos na tela.';
+      case 6: return 'Vamos colocar um indicador de acompanhamento dessa meta no topo do seu painel.';
       default: return '';
     }
   };
@@ -431,19 +448,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
   // Motivational coach bubble text
   const getBubbleText = () => {
     if (selections[getCurrentStepKey()]) {
-      if (step === 1) return `Excelente! ${BUSINESS_TYPES.find(b => b.id === selections.businessType)?.label} é um ótimo mercado. Vamos customizar para ele!`;
-      if (step === 2) return 'Fantástico! Essa necessidade é muito comum. Já sei qual painel te atende melhor.';
-      if (step === 3) return 'Entendido! Esse fluxo de processo ajuda a simplificar o estoque.';
-      if (step === 4) return experienceOptions.find(o => o.id === selections.experience)?.mascotText || 'Ótima resposta! Faremos o melhor para você.';
-      if (step === 5) return 'Perfeito! Vamos focar em atingir esse objetivo estratégico juntos!';
+      if (step === 1) return `Muito prazer, ${selections.clientName}! Vamos criar o ERP perfeito para a ${selections.companyName || 'sua empresa'}.`;
+      if (step === 2) return `Excelente! ${BUSINESS_TYPES.find(b => b.id === selections.businessType)?.label} é um ótimo mercado. Vamos customizar para ele!`;
+      if (step === 3) return 'Fantástico! Essa necessidade é muito comum. Já sei qual painel te atende melhor.';
+      if (step === 4) return 'Entendido! Esse fluxo de processo ajuda a simplificar o estoque.';
+      if (step === 5) return experienceOptions.find(o => o.id === selections.experience)?.mascotText || 'Ótima resposta! Faremos o melhor para você.';
+      if (step === 6) return 'Perfeito! Vamos focar em atingir esse objetivo estratégico juntos!';
     }
     
     switch (step) {
-      case 1: return 'Olá! Eu sou o Flowey. Vou te ajudar a configurar seu ERP em menos de 1 minuto! Qual é a sua área?';
-      case 2: return 'Agora me conta: qual dor ou necessidade tira o seu sono hoje na gestão?';
-      case 3: return 'Como as coisas acontecem na prática? Do estoque à venda, me conte seu processo.';
-      case 4: return 'Qual o seu nível de intimidade com softwares de gestão ou planilhas?';
-      case 5: return 'Por fim, qual o seu principal objetivo estratégico para o trimestre?';
+      case 1: return 'Olá! Eu sou o Flowey. Vou te ajudar a configurar seu ERP em menos de 1 minuto! Como posso te chamar e qual o nome da sua empresa?';
+      case 2: return `Perfeito, ${selections.clientName}! Agora me diga: qual é o seu ramo de atuação?`;
+      case 3: return 'Agora me conta: qual dor ou necessidade tira o seu sono hoje na gestão?';
+      case 4: return 'Como as coisas acontecem na prática? Do estoque à venda, me conte seu processo.';
+      case 5: return 'Qual o seu nível de intimidade com softwares de gestão ou planilhas?';
+      case 6: return 'Por fim, qual o seu principal objetivo estratégico para o trimestre?';
       default: return 'Vamos lá!';
     }
   };
@@ -530,7 +549,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
             <div className="relative w-full bg-slate-200 dark:bg-slate-800 h-4 rounded-full overflow-hidden shadow-inner border border-slate-100 dark:border-slate-900">
               <div 
                 className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500 ease-out"
-                style={{ width: `${(step / 5) * 100}%` }}
+                style={{ width: `${(step / 6) * 100}%` }}
               >
                 <div className="absolute top-0.5 left-0 right-0 h-1 bg-white/20 rounded-full" />
               </div>
@@ -585,6 +604,31 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
               className="w-full"
             >
               {step === 1 && (
+                <div className="space-y-6 max-w-md mx-auto text-left animate-in fade-in duration-300">
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Seu Nome</label>
+                    <input
+                      type="text"
+                      value={selections.clientName}
+                      onChange={(e) => handleSelect('clientName', e.target.value)}
+                      placeholder="Ex: Carlos Silva"
+                      className="w-full h-12 px-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold placeholder:text-slate-400 focus:border-blue-500 focus:ring-0 outline-none transition-all shadow-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Nome da Empresa</label>
+                    <input
+                      type="text"
+                      value={selections.companyName}
+                      onChange={(e) => handleSelect('companyName', e.target.value)}
+                      placeholder="Ex: Silva Modas"
+                      className="w-full h-12 px-5 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-bold placeholder:text-slate-400 focus:border-blue-500 focus:ring-0 outline-none transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
                 <div className="space-y-6 max-w-3xl mx-auto">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {BUSINESS_TYPES.map((item) => {
@@ -638,7 +682,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                 </div>
               )}
 
-              {step === 2 && (
+              {step === 3 && (
                 <div className="space-y-6 max-w-2xl mx-auto">
                   <div className="grid sm:grid-cols-2 gap-4">
                     {getNeedsOptions().map((item) => {
@@ -692,7 +736,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                 </div>
               )}
 
-              {step === 3 && (
+              {step === 4 && (
                 <div className="space-y-6 max-w-3xl mx-auto">
                   <div className="grid sm:grid-cols-3 gap-4">
                     {getProcessOptions().map((item) => {
@@ -746,7 +790,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                 </div>
               )}
 
-              {step === 4 && (
+              {step === 5 && (
                 <div className="space-y-6 max-w-xl mx-auto">
                   <div className="space-y-4">
                     {experienceOptions.map((item) => {
@@ -794,7 +838,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                 </div>
               )}
 
-              {step === 5 && (
+              {step === 6 && (
                 <div className="space-y-6 max-w-2xl mx-auto">
                   <div className="grid grid-cols-2 gap-4">
                     {goalOptions.map((item) => {
@@ -872,7 +916,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
                 : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20 active:translate-y-0.5'
             }`}
           >
-            {step === 5 ? (
+            {step === 6 ? (
               <span className="flex items-center gap-2">Finalizar <Sparkles size={16} /></span>
             ) : (
               <span className="flex items-center gap-2">Continuar <ArrowRight size={16} /></span>

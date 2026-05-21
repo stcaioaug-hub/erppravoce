@@ -212,3 +212,20 @@ create policy "App users can manage business next steps" on public.business_next
 create policy "App users can manage business simulations" on public.business_simulations for all to anon, authenticated using (true) with check (true);
 create policy "App users can manage business funnel" on public.business_funnel for all to anon, authenticated using (true) with check (true);
 create policy "App users can manage business partners" on public.business_partners for all to anon, authenticated using (true) with check (true);
+
+-- CLIENT ONBOARDING
+create table if not exists public.client_onboarding (
+  id text primary key default gen_random_uuid()::text,
+  client_name text not null default '',
+  company_name text not null default '',
+  business_type text not null,
+  need text not null,
+  process text not null,
+  experience text not null,
+  goal text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.client_onboarding enable row level security;
+create policy "App users can manage client onboarding" on public.client_onboarding for all to anon, authenticated using (true) with check (true);
+

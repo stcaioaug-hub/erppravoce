@@ -183,3 +183,16 @@ export interface BusinessPartner {
   area: string;
   notes: string;
 }
+
+export interface ClientOnboarding {
+  id: string;
+  clientName: string;
+  companyName: string;
+  businessType: string;
+  need: string;
+  process: string;
+  experience: string;
+  goal: string;
+  createdAt: Date;
+}
+

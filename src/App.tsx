@@ -3,27 +3,36 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { AppLayout } from './components/AppLayout';
 import { UserRoleSelection } from './components/UserRoleSelection';
-import { Dashboard } from './modules/Dashboard';
-import { PDV } from './modules/PDV';
-import { Products } from './modules/Products';
-import { Sales } from './modules/Sales';
-import { Financial } from './modules/Financial';
-import { Customers } from './modules/Customers';
-import { Suppliers } from './modules/Suppliers';
-import { Stock } from './modules/Stock';
-import { Purchases } from './modules/Purchases';
-import { Reports } from './modules/Reports';
-import { Settings } from './modules/Settings';
-import { Tributary } from './modules/Tributary';
-import { Storage } from './modules/Storage';
-import { BusinessVision } from './modules/BusinessVision';
-import { Onboarding } from './modules/Onboarding';
-import { BriefcaseBusiness, LogIn, Moon, ShoppingCart, Sun } from 'lucide-react';
+import { saveClientOnboarding } from './lib/clientOnboardingRepository';
+import { LogIn, Moon, Sun } from 'lucide-react';
 import { Button, Input, Card } from './components/ui';
 import { useTheme } from './contexts/ThemeContext';
+
+const Dashboard = lazy(() => import('./modules/Dashboard').then((module) => ({ default: module.Dashboard })));
+const PDV = lazy(() => import('./modules/PDV').then((module) => ({ default: module.PDV })));
+const Products = lazy(() => import('./modules/Products').then((module) => ({ default: module.Products })));
+const Sales = lazy(() => import('./modules/Sales').then((module) => ({ default: module.Sales })));
+const Financial = lazy(() => import('./modules/Financial').then((module) => ({ default: module.Financial })));
+const Customers = lazy(() => import('./modules/Customers').then((module) => ({ default: module.Customers })));
+const Suppliers = lazy(() => import('./modules/Suppliers').then((module) => ({ default: module.Suppliers })));
+const Stock = lazy(() => import('./modules/Stock').then((module) => ({ default: module.Stock })));
+const Purchases = lazy(() => import('./modules/Purchases').then((module) => ({ default: module.Purchases })));
+const Reports = lazy(() => import('./modules/Reports').then((module) => ({ default: module.Reports })));
+const Settings = lazy(() => import('./modules/Settings').then((module) => ({ default: module.Settings })));
+const Tributary = lazy(() => import('./modules/Tributary').then((module) => ({ default: module.Tributary })));
+const Storage = lazy(() => import('./modules/Storage').then((module) => ({ default: module.Storage })));
+const BusinessVision = lazy(() => import('./modules/BusinessVision').then((module) => ({ default: module.BusinessVision })));
+const Onboarding = lazy(() => import('./modules/Onboarding').then((module) => ({ default: module.Onboarding })));
+const OnboardingInsights = lazy(() => import('./modules/OnboardingInsights').then((module) => ({ default: module.OnboardingInsights })));
+
+const ModuleLoading = () => (
+  <div className="flex min-h-[320px] items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
+    Carregando...
+  </div>
+);
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -59,6 +68,8 @@ export default function App() {
         return <Purchases />;
       case 'relatorios':
         return <Reports />;
+      case 'onboarding_insights':
+        return <OnboardingInsights />;
       case 'tributario':
         return <Tributary />;
       case 'armazenamento':
@@ -82,17 +93,24 @@ export default function App() {
 
   if (userRole === 'onboarding') {
     return (
-      <Onboarding 
-        onComplete={(data) => {
-          localStorage.setItem('varejoflow_onboarding', JSON.stringify(data));
-          setUserRole('client');
-          setCurrentModule('dashboard');
-          setIsAuthenticated(true);
-        }}
-        onCancel={() => {
-          setUserRole(null);
-        }}
-      />
+      <Suspense fallback={<ModuleLoading />}>
+        <Onboarding 
+          onComplete={async (data) => {
+            localStorage.setItem('varejoflow_onboarding', JSON.stringify(data));
+            try {
+              await saveClientOnboarding(data);
+            } catch (e) {
+              console.error('Erro ao salvar onboarding no Supabase:', e);
+            }
+            setUserRole('client');
+            setCurrentModule('dashboard');
+            setIsAuthenticated(true);
+          }}
+          onCancel={() => {
+            setUserRole(null);
+          }}
+        />
+      </Suspense>
     );
   }
 
@@ -177,7 +195,9 @@ export default function App() {
         setUserRole(null);
       }}
     >
-      {renderModule()}
+      <Suspense fallback={<ModuleLoading />}>
+        {renderModule()}
+      </Suspense>
     </AppLayout>
   );
 }
