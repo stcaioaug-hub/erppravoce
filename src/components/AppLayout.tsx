@@ -52,7 +52,7 @@ const MENU_ITEMS = [
 interface AppLayoutProps {
   currentModule: string;
   onNavigate: (module: string) => void;
-  userRole: 'admin' | 'client' | 'business' | null;
+  userRole: 'admin' | 'client' | 'business' | 'onboarding' | null;
   onLogout?: () => void;
   children: React.ReactNode;
 }
@@ -62,10 +62,65 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
 
+  // Carregar dados de onboarding para adaptabilidade
+  const onboardingData = (() => {
+    try {
+      const raw = localStorage.getItem('varejoflow_onboarding');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      console.error('Erro ao processar dados de onboarding:', e);
+      return null;
+    }
+  })();
+  const businessType = onboardingData?.businessType || '';
+
+  const getCustomLabel = (id: string, defaultLabel: string) => {
+    if (!businessType) return defaultLabel;
+
+    if (id === 'produtos') {
+      if (['servicos', 'beleza'].includes(businessType)) return 'Serviços & Prod.';
+      if (businessType === 'restaurante') return 'Cardápio / Itens';
+      return defaultLabel;
+    }
+    if (id === 'pdv') {
+      if (['servicos', 'beleza'].includes(businessType)) return 'Agendar / PDV';
+      if (businessType === 'restaurante') return 'Comandas / PDV';
+      if (businessType === 'mercadinho') return 'Caixa / PDV Rápido';
+      return defaultLabel;
+    }
+    if (id === 'estoque') {
+      if (businessType === 'industria') return 'Mapear Insumos';
+      return defaultLabel;
+    }
+    if (id === 'vendas') {
+      if (businessType === 'distribuidora') return 'Atacado / Vendas';
+      return defaultLabel;
+    }
+    if (id === 'clientes') {
+      if (businessType === 'distribuidora') return 'Carteira de Clientes';
+      return defaultLabel;
+    }
+    return defaultLabel;
+  };
+
+  const getBusinessTypeLabel = () => {
+    switch (businessType) {
+      case 'varejo': return 'Modo Varejo';
+      case 'mercadinho': return 'Modo Mercado';
+      case 'restaurante': return 'Modo Alimentação';
+      case 'servicos': return 'Modo Serviços';
+      case 'industria': return 'Modo Indústria';
+      case 'distribuidora': return 'Modo Distribuidora';
+      case 'beleza': return 'Modo Estética';
+      case 'ecommerce': return 'Modo E-commerce';
+      default: return 'Modo Customizado';
+    }
+  };
+
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 flex transition-colors duration-300 overflow-x-hidden">
       {/* Sidebar - Desktop */}
-      {currentModule !== 'business_vision' && (
+      {(currentModule !== 'business_vision' || userRole === 'admin') && (
         <aside className={cn(
           "hidden lg:flex flex-col bg-slate-900 text-slate-300 transition-all duration-300 ease-in-out z-30 fixed left-0 top-0 bottom-0",
           sidebarOpen ? "w-64" : "w-20"
@@ -81,14 +136,21 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
               </svg>
             </div>
             {sidebarOpen && (
-              <span className="text-xl font-bold text-white tracking-tight truncate">ERP <span className="font-medium text-slate-300">pra Você</span></span>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-white tracking-tight truncate leading-tight">ERP <span className="font-medium text-slate-300">pra Você</span></span>
+                {businessType && (
+                  <span className="text-[10px] text-violet-400 font-extrabold uppercase tracking-wider leading-none mt-0.5">
+                    {getBusinessTypeLabel()}
+                  </span>
+                )}
+              </div>
             )}
           </div>
 
           <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1 custom-scrollbar">
             {MENU_ITEMS.filter(item => {
               // Se cliente, ocultar abas exclusivas de admin
-              if (userRole === 'client' && ['relatorios'].includes(item.id)) return false; 
+              if (userRole === 'client' && ['relatorios', 'business_vision'].includes(item.id)) return false; 
               return true;
             }).map((item) => {
               const Icon = item.icon;
@@ -108,7 +170,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
                   <Icon size={20} className={cn("shrink-0", isActive ? "text-blue-400" : "text-slate-500 group-hover:text-slate-200")} />
                   {sidebarOpen && (
                     <span className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">
-                      {item.label}
+                      {getCustomLabel(item.id, item.label)}
                     </span>
                   )}
                 </button>
@@ -135,10 +197,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
       {/* Main Content Area */}
       <div className={cn(
         "flex-1 flex flex-col transition-all duration-300 min-w-0 overflow-x-hidden",
-        currentModule === 'business_vision' ? "lg:ml-0" : (sidebarOpen ? "lg:ml-64" : "lg:ml-20")
+        (currentModule === 'business_vision' && userRole !== 'admin') ? "lg:ml-0" : (sidebarOpen ? "lg:ml-64" : "lg:ml-20")
       )}>
         {/* Header */}
-        {currentModule === 'business_vision' ? (
+        {(currentModule === 'business_vision' && userRole !== 'admin') ? (
           <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20 flex items-center justify-between px-4 lg:px-8 transition-colors duration-300">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm">
@@ -229,31 +291,33 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
       </div>
 
       {/* Floating Action Button (Mobile) - Nova Venda */}
-      <div className="lg:hidden fixed bottom-20 right-4 z-40">
-        <button 
-          onClick={() => onNavigate('pdv')}
-          className="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors shadow-blue-500/30"
-          title="Nova Venda"
-        >
-          <ShoppingCart size={24} />
-        </button>
-      </div>
+      {currentModule !== 'pdv' && (
+        <div className="lg:hidden fixed bottom-20 right-4 z-40">
+          <button 
+            onClick={() => onNavigate('pdv')}
+            className="flex items-center justify-center w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors shadow-blue-500/30"
+            title="Nova Venda"
+          >
+            <ShoppingCart size={24} />
+          </button>
+        </div>
+      )}
 
       {/* Bottom Navigation Bar - Mobile Only */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-40 px-2 flex items-center justify-between transition-colors duration-300 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)] pb-[env(safe-area-inset-bottom)]">
         {[
-          { id: 'dashboard', label: 'Início', icon: LayoutDashboard },
           { id: 'pdv', label: 'PDV', icon: Monitor },
           { id: 'vendas', label: 'Vendas', icon: ShoppingCart },
+          { id: 'dashboard', label: 'Início', icon: LayoutDashboard },
           { id: 'produtos', label: 'Produtos', icon: Package },
-          { id: 'business_vision', label: 'Plano', icon: BriefcaseBusiness },
+          { id: 'mais', label: 'Mais', icon: Menu, action: () => setMobileMenuOpen(true) },
         ].map((item) => {
           const Icon = item.icon;
-          const isActive = currentModule === item.id;
+          const isActive = item.id === 'mais' ? mobileMenuOpen : currentModule === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              onClick={item.action ? item.action : () => onNavigate(item.id)}
               className={cn(
                 "flex flex-col items-center justify-center p-2 my-1 rounded-xl transition-all min-w-[50px] flex-1",
                 isActive 
@@ -262,17 +326,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
               )}
             >
               <Icon size={20} className={cn("mb-1", isActive ? "stroke-[2.5px]" : "")} />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium">{getCustomLabel(item.id, item.label)}</span>
             </button>
           );
         })}
-        <button
-          onClick={() => setMobileMenuOpen(true)}
-          className="flex flex-col items-center justify-center p-2 my-1 rounded-xl transition-all min-w-[50px] flex-1 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
-        >
-          <Menu size={20} className="mb-1" />
-          <span className="text-[10px] font-medium">Mais</span>
-        </button>
       </nav>
 
       {/* Mobile Drawer */}
@@ -295,7 +352,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
                     <rect x="10" y="80" width="30" height="30" rx="6" fill="#003882" />
                   </svg>
                 </div>
-                <span className="font-bold text-white text-lg truncate">ERP <span className="font-medium text-slate-300">pra Você</span></span>
+                <div className="flex flex-col">
+                  <span className="font-bold text-white text-lg truncate leading-tight">ERP <span className="font-medium text-slate-300">pra Você</span></span>
+                  {businessType && (
+                    <span className="text-[9px] text-violet-400 font-extrabold uppercase tracking-wider leading-none mt-0.5">
+                      {getBusinessTypeLabel()}
+                    </span>
+                  )}
+                </div>
               </div>
               <button onClick={() => setMobileMenuOpen(false)} className="text-slate-400 p-2">
                 <X size={20} />
@@ -304,7 +368,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
             
             <nav className="flex-1 space-y-1 overflow-y-auto custom-scrollbar">
               {MENU_ITEMS.filter(item => {
-                if (userRole === 'client' && ['relatorios'].includes(item.id)) return false; 
+                if (userRole === 'client' && ['relatorios', 'business_vision'].includes(item.id)) return false; 
                 return true;
               }).map((item) => {
                 const Icon = item.icon;
@@ -322,7 +386,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ currentModule, onNavigate,
                     )}
                   >
                     <Icon size={20} />
-                    <span className="text-sm font-medium">{item.label}</span>
+                    <span className="text-sm font-medium">{getCustomLabel(item.id, item.label)}</span>
                   </button>
                 );
               })}

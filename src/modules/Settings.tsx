@@ -28,7 +28,8 @@ import {
   QrCode, 
   Copy,
   Eye, 
-  EyeOff 
+  EyeOff,
+  Sparkles
 } from 'lucide-react';
 import { PageHeader, Button, Card, Input, Badge } from '../components/ui';
 
@@ -114,6 +115,7 @@ export const Settings = () => {
             { id: 'notifications', label: 'Notificações', icon: Bell },
             { id: 'security', label: 'Segurança', icon: Shield },
             { id: 'import', label: 'Importação / Dados', icon: Database },
+            { id: 'onboarding', label: 'Onboarding / Ramo', icon: Sparkles },
           ].map((item) => (
             <button
               key={item.id}
@@ -711,6 +713,161 @@ export const Settings = () => {
               </div>
             </Card>
           )}
+
+          {activeTab === 'onboarding' && (() => {
+            let data: any = null;
+            try {
+              const raw = localStorage.getItem('varejoflow_onboarding');
+              data = raw ? JSON.parse(raw) : null;
+            } catch (e) {
+              console.error('Erro ao ler onboarding de localStorage:', e);
+            }
+
+            return (
+              <div className="space-y-6 animate-in fade-in duration-300">
+                <Card className="p-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 bg-violet-100 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-2xl">
+                      <Sparkles size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-slate-800 dark:text-white transition-colors">Configurações de Adaptação (Onboarding)</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 transition-colors">Verifique as respostas cadastradas e reinicie a adaptação quando desejar.</p>
+                    </div>
+                  </div>
+
+                  {data ? (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900/60 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 transition-all">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Ramo Comercial</span>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                            {(() => {
+                              switch(data.businessType) {
+                                case 'varejo': return 'Varejo (Moda & Lojas)';
+                                case 'mercadinho': return 'Mercadinho & Mercearia';
+                                case 'restaurante': return 'Restaurante & Delivery';
+                                case 'servicos': return 'Prestação de Serviços';
+                                case 'industria': return 'Indústria & Confecção';
+                                case 'distribuidora': return 'Distribuidora & Atacado';
+                                case 'beleza': return 'Salão & Estética';
+                                case 'ecommerce': return 'E-commerce & Digital';
+                                default: return 'Customizado / Outro';
+                              }
+                            })()}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Maior Necessidade</span>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                            {(() => {
+                              return data.need === 'grade' ? 'Controlar estoque por tamanho/cor' :
+                                     data.need === 'pdv_rapido' ? 'Vender rápido no balcão/PDV' :
+                                     data.need === 'crm' ? 'Fidelizar clientes e histórico' :
+                                     data.need === 'financeiro' ? 'Organizar contas a pagar e receber' :
+                                     data.need === 'barcode' ? 'Leitura rápida de código de barras' :
+                                     data.need === 'validade' ? 'Controlar validade de lotes' :
+                                     data.need === 'margem' ? 'Cálculo de margens e precificação' :
+                                     data.need === 'reposicao' ? 'Reposição de fornecedores' :
+                                     data.need === 'comandas' ? 'Controlar mesas e comandas' :
+                                     data.need === 'ingredientes' ? 'Estoque de insumos/ingredientes' :
+                                     data.need === 'delivery' ? 'Integrar vendas de delivery' :
+                                     data.need === 'caixa_diario' ? 'Fechamento de caixa diário' :
+                                     data.need === 'os' ? 'Emitir Ordens de Serviço (OS)' :
+                                     data.need === 'agenda' ? 'Agendar horários e profissionais' :
+                                     data.need === 'recorrencia' ? 'Cobrar mensalidades/recorrência' :
+                                     data.need === 'comissao' ? 'Comissão de profissionais' :
+                                     data.need === 'custo_producao' ? 'Calcular o custo real de produção' :
+                                     data.need === 'materia_prima' ? 'Controlar matéria-prima' :
+                                     data.need === 'fases' ? 'Mapear fases/etapas produtivas' :
+                                     data.need === 'os_producao' ? 'Vendas integradas com produção' :
+                                     data.need === 'atacado_preco' ? 'Venda fracionada e atacado' :
+                                     data.need === 'vendedores' ? 'Gerenciar comissões externas' :
+                                     data.need === 'nfe_lote' ? 'Emitir Notas Fiscais em lote' :
+                                     data.need === 'rotas' ? 'Logística de entrega e rotas' :
+                                     data.need === 'financeiro_simples' ? 'Controlar entradas e saídas' :
+                                     data.need === 'estoque_fisico' ? 'Organizar estoque físico' :
+                                     data.need === 'clientes_forn' ? 'Cadastrar clientes e fornecedores' :
+                                     data.need === 'relatorios_vendas' ? 'Relatórios de vendas práticos' : 'Geral';
+                            })()}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1 mt-3">
+                          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Processo Produtivo</span>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                            {(() => {
+                              return data.process === 'revenda_simples' ? 'Compro pronto ➔ Estoco ➔ Vendo' :
+                                     data.process === 'consignado' ? 'Consigno produtos ➔ Vendo ➔ Pago' :
+                                     data.process === 'encomenda' ? 'Recebo encomenda ➔ Compro/Entrego' :
+                                     data.process === 'pedido_cozinha' ? 'Pedido ➔ Cozinho na hora ➔ Sirvo' :
+                                     data.process === 'buffet' ? 'Preparo buffet ➔ Sirvo no balcão' :
+                                     data.process === 'centralizada' ? 'Cozinha Central ➔ Envio para filiais' :
+                                     data.process === 'agenda_executa' ? 'Agendo ➔ Executo serviço ➔ Cobro' :
+                                     data.process === 'orcamento_aprova' ? 'Orçamento ➔ Executo ➔ Fatura' :
+                                     data.process === 'mensalidade' ? 'Contrato recorrente ➔ Presto' :
+                                     data.process === 'compra_produz' ? 'Insumos ➔ Ficha Técnica ➔ Produzo' :
+                                     data.process === 'industrializo_cliente' ? 'Recebo insumos ➔ Beneficio ➔ Devolvo' :
+                                     data.process === 'producao_sob_medida' ? 'Produzo sob encomenda exclusiva' :
+                                     data.process === 'recebo_distribuo' ? 'Carga chega ➔ Estoco ➔ Distribuo' :
+                                     data.process === 'pedido_separo' ? 'Vendedor ➔ Separo ➔ Despacho' :
+                                     data.process === 'crossdocking' ? 'Produto entra ➔ Roteirizo ➔ Despacho' :
+                                     data.process === 'simples_pdv' ? 'Cadastro produto ➔ Vendo ➔ Recebo' : 'Misto / Customizado';
+                            })()}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1 mt-3">
+                          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Objetivo Trimestral</span>
+                          <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                            {(() => {
+                              return data.goal === 'faturamento' ? 'Aumentar o faturamento' :
+                                     data.goal === 'organizacao' ? 'Organizar finanças' :
+                                     data.goal === 'tempo' ? 'Economizar tempo na operação' :
+                                     data.goal === 'expansao' ? 'Expandir o negócio' : 'Geral';
+                            })()}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-violet-50 dark:bg-violet-950/20 border border-violet-100 dark:border-violet-800/45 rounded-2xl">
+                        <p className="text-xs font-bold text-violet-800 dark:text-violet-400 leading-relaxed">
+                          Nota: A interface do ERP foi totalmente adaptada baseando-se nestas respostas. Os atalhos, nomes de abas, painéis do PDV e gráficos do dashboard estão configurados especialmente para otimizar o fluxo de seu segmento comercial.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-50 dark:bg-slate-900/60 p-6 rounded-2xl text-center border border-slate-100 dark:border-slate-800">
+                      <p className="text-sm text-slate-500 dark:text-slate-400 font-bold mb-2">Sem Onboarding Ativo</p>
+                      <p className="text-xs text-slate-400">Você ainda não realizou o onboarding para adaptar o sistema ao seu ramo.</p>
+                    </div>
+                  )}
+
+                  <div className="border-t border-slate-100 dark:border-slate-800 pt-8 mt-6">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div>
+                        <h4 className="text-base font-black text-slate-800 dark:text-white transition-colors">Refazer Processo de Onboarding</h4>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 transition-colors">Zere a configuração e responda novamente às perguntas do assistente para redefinir as preferências do ERP.</p>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          localStorage.removeItem('varejoflow_onboarding');
+                          showToast('Resetando preferências... Redirecionando.');
+                          setTimeout(() => {
+                            window.location.reload();
+                          }, 1000);
+                        }}
+                        className="bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-200 dark:shadow-none gap-2 font-bold"
+                      >
+                        <RefreshCw size={16} /> Refazer Onboarding
+                      </Button>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </div>

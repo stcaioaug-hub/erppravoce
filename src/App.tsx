@@ -20,6 +20,7 @@ import { Settings } from './modules/Settings';
 import { Tributary } from './modules/Tributary';
 import { Storage } from './modules/Storage';
 import { BusinessVision } from './modules/BusinessVision';
+import { Onboarding } from './modules/Onboarding';
 import { BriefcaseBusiness, LogIn, Moon, ShoppingCart, Sun } from 'lucide-react';
 import { Button, Input, Card } from './components/ui';
 import { useTheme } from './contexts/ThemeContext';
@@ -28,7 +29,7 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentModule, setCurrentModule] = useState('dashboard');
   const [loginForm, setLoginForm] = useState({ email: 'admin@erppravoce.com.br', password: 'admin' });
-  const [userRole, setUserRole] = useState<'admin' | 'client' | 'business' | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'client' | 'business' | 'onboarding' | null>(null);
   const { theme, toggleTheme } = useTheme();
 
   const handleLogin = (e: React.FormEvent) => {
@@ -77,6 +78,22 @@ export default function App() {
       setCurrentModule(role === 'business' ? 'business_vision' : 'dashboard');
       setIsAuthenticated(true);
     }} />;
+  }
+
+  if (userRole === 'onboarding') {
+    return (
+      <Onboarding 
+        onComplete={(data) => {
+          localStorage.setItem('varejoflow_onboarding', JSON.stringify(data));
+          setUserRole('client');
+          setCurrentModule('dashboard');
+          setIsAuthenticated(true);
+        }}
+        onCancel={() => {
+          setUserRole(null);
+        }}
+      />
+    );
   }
 
   if (!isAuthenticated) {
