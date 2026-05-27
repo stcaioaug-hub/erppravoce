@@ -7,7 +7,7 @@ import { subDays, subHours } from 'date-fns';
 export const currentUser: User = {
   id: 'u1',
   name: 'Carlos Oliveira',
-  email: 'carlos@varejoflow.com.br',
+  email: 'carlos@easyone.com.br',
   role: 'admin',
   avatar: 'https://i.pravatar.cc/150?u=carlos'
 };

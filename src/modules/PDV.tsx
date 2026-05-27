@@ -19,7 +19,9 @@ import {
   ShoppingCart,
   Maximize,
   History,
-  Copy
+  Copy,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -27,7 +29,7 @@ import { Card, Button, Input, Badge, Modal } from '../components/ui';
 import { MOCK_PRODUCTS, MOCK_CUSTOMERS } from '../data/mocks';
 import { Product, PaymentMethod, SaleItem, Customer } from '../types';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { createSale, fetchCustomers, fetchProducts } from '../lib/varejoflowRepository';
+import { createSale, fetchCustomers, fetchProducts } from '../lib/easyoneRepository';
 import { formatCurrency, cn } from '../lib/utils';
 
 export const PDV = () => {
@@ -44,6 +46,24 @@ export const PDV = () => {
   const [customerSearch, setCustomerSearch] = useState('');
   const [isSavingSale, setIsSavingSale] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [isCartMinimized, setIsCartMinimized] = useState(false);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (window.innerWidth >= 1024) return;
+    const target = e.currentTarget;
+    const scrollTop = target.scrollTop;
+
+    // Minimize cart on scroll, do not auto-expand on scroll
+    if (scrollTop > 20) {
+      setIsCartMinimized(true);
+    }
+  };
+
+  const toggleCartMinimize = () => {
+    if (window.innerWidth < 1024) {
+      setIsCartMinimized(!isCartMinimized);
+    }
+  };
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -200,7 +220,20 @@ export const PDV = () => {
   }, [isScannerOpen]);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)] overflow-hidden">
+    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)] overflow-hidden relative">
+      {/* Backdrop for mobile cart */}
+      <AnimatePresence>
+        {!isCartMinimized && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="lg:hidden absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] z-20"
+            onClick={() => setIsCartMinimized(true)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Product Selection Area */}
       <div className="flex-1 flex flex-col gap-4 overflow-hidden">
         {syncError && (
@@ -230,7 +263,10 @@ export const PDV = () => {
           </div>
         </Card>
 
-        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <div 
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-20 lg:pb-0"
+        >
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.map((product) => (
               <button
@@ -263,14 +299,41 @@ export const PDV = () => {
       </div>
 
       {/* Cart Area */}
-      <div className="w-full lg:w-96 flex flex-col gap-4 sticky top-0">
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div className="flex items-center gap-2 font-bold text-slate-900">
-              <ShoppingCart size={20} className="text-blue-600" />
-              Carrinho
+      <div className={cn(
+        "w-full lg:w-96 flex flex-col gap-4 transition-transform duration-300 ease-in-out",
+        "absolute bottom-0 left-0 right-0 z-30 h-[70vh] max-h-[500px]",
+        "lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:h-auto lg:max-h-none lg:z-0 lg:translate-y-0",
+        isCartMinimized ? "translate-y-[calc(100%-60px)]" : "translate-y-0"
+      )}>
+        <Card className="flex-1 flex flex-col overflow-hidden rounded-t-2xl lg:rounded-2xl border-t border-slate-100 dark:border-slate-800 lg:border-none shadow-2xl lg:shadow-none">
+          {/* Drag handle/indicator for mobile bottom sheet */}
+          <div className="lg:hidden w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mt-3 mb-1 shrink-0" />
+          
+          <div 
+            onClick={toggleCartMinimize}
+            className={cn(
+              "p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 select-none",
+              "cursor-pointer lg:cursor-default"
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <span className="lg:hidden text-slate-500">
+                {isCartMinimized ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              </span>
+              <div className="flex items-center gap-2 font-bold text-slate-900">
+                <ShoppingCart size={20} className="text-blue-600" />
+                Carrinho
+              </div>
             </div>
-            <Badge variant="blue">{cart.length} itens</Badge>
+            
+            <div className="flex items-center gap-2">
+              {isCartMinimized && cart.length > 0 && (
+                <span className="lg:hidden text-base font-black text-blue-600 mr-2 animate-in fade-in duration-300">
+                  {formatCurrency(totals.total)}
+                </span>
+              )}
+              <Badge variant="blue">{cart.length} itens</Badge>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-2 custom-scrollbar">

@@ -1,7 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="512" height="512">
-  <path d="M 60 60 L 95 25" stroke="#ffb300" stroke-width="26" stroke-linecap="round" />
-  <path d="M 25 95 L 60 60" stroke="#003882" stroke-width="26" stroke-linecap="round" />
-  <rect x="80" y="10" width="30" height="30" rx="6" fill="#ffb300" />
-  <rect x="45" y="45" width="30" height="30" rx="6" fill="#00A0F0" />
-  <rect x="10" y="80" width="30" height="30" rx="6" fill="#003882" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="easyOneRing" x1="10%" y1="10%" x2="88%" y2="88%">
+      <stop offset="0%" stop-color="#00ea50" />
+      <stop offset="46%" stop-color="#00df6b" />
+      <stop offset="100%" stop-color="#03a8ff" />
+    </linearGradient>
+    <linearGradient id="easyOneSweep" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#173fff" />
+      <stop offset="45%" stop-color="#0078ff" />
+      <stop offset="100%" stop-color="#09d9f5" />
+    </linearGradient>
+  </defs>
+  <path d="M 12 48 C 31 20, 72 8, 101 20" fill="none" stroke="url(#easyOneSweep)" stroke-width="8" stroke-linecap="round" />
+  <path d="M 11 75 C 22 104, 68 113, 105 78" fill="none" stroke="url(#easyOneSweep)" stroke-width="9" stroke-linecap="round" />
+  <circle cx="52" cy="60" r="25" fill="none" stroke="url(#easyOneRing)" stroke-width="12" />
+  <circle cx="94" cy="34" r="9" fill="url(#easyOneRing)" />
 </svg>

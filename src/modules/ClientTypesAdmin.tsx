@@ -124,9 +124,14 @@ export const ClientTypesAdmin: React.FC = () => {
   });
 
   const toggleDefault = async (clientTypeId: ClientTypeId, featureId: string, enabled: boolean) => {
-    const key = `${clientTypeId}:${featureId}`;
+    const key = `${clientTypeId}:${featureId}:enabled`;
     setSavingKey(key);
     const previous = defaults;
+    const currentDefault = defaults.find(
+      (item) => item.clientTypeId === clientTypeId && item.featureId === featureId,
+    );
+    const optional = currentDefault ? currentDefault.optional : false;
+
     setDefaults((current) => current.map((item) => (
       item.clientTypeId === clientTypeId && item.featureId === featureId
         ? { ...item, enabled }
@@ -134,7 +139,33 @@ export const ClientTypesAdmin: React.FC = () => {
     )));
 
     try {
-      await updateClientTypeFeatureDefault(clientTypeId, featureId, enabled);
+      await updateClientTypeFeatureDefault(clientTypeId, featureId, enabled, optional);
+    } catch (err) {
+      console.error(err);
+      setDefaults(previous);
+      alert('Erro ao salvar feature do tipo de cliente.');
+    } finally {
+      setSavingKey(null);
+    }
+  };
+
+  const toggleOptional = async (clientTypeId: ClientTypeId, featureId: string, optional: boolean) => {
+    const key = `${clientTypeId}:${featureId}:optional`;
+    setSavingKey(key);
+    const previous = defaults;
+    const currentDefault = defaults.find(
+      (item) => item.clientTypeId === clientTypeId && item.featureId === featureId,
+    );
+    const enabled = currentDefault ? currentDefault.enabled : false;
+
+    setDefaults((current) => current.map((item) => (
+      item.clientTypeId === clientTypeId && item.featureId === featureId
+        ? { ...item, optional }
+        : item
+    )));
+
+    try {
+      await updateClientTypeFeatureDefault(clientTypeId, featureId, enabled, optional);
     } catch (err) {
       console.error(err);
       setDefaults(previous);
@@ -331,22 +362,36 @@ export const ClientTypesAdmin: React.FC = () => {
                         const row = defaultsByType[type.id]?.[feature.id];
                         const checked = Boolean(row?.enabled);
                         const optional = Boolean(row?.optional);
-                        const key = `${type.id}:${feature.id}`;
+                        const isSavingEnabled = savingKey === `${type.id}:${feature.id}:enabled`;
+                        const isSavingOptional = savingKey === `${type.id}:${feature.id}:optional`;
 
                         return (
-                          <td key={feature.id} className="p-3 text-center">
-                            <label className="inline-flex flex-col items-center gap-1 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                disabled={savingKey === key || loading}
-                                onChange={(event) => toggleDefault(type.id, feature.id, event.target.checked)}
-                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              {optional && (
-                                <span className="text-[8px] font-black uppercase tracking-widest text-violet-500">opt</span>
-                              )}
-                            </label>
+                          <td key={feature.id} className="p-3 text-center border-r border-slate-100 dark:border-slate-800 last:border-r-0">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              {/* Enabled Checkbox */}
+                              <label className="flex items-center gap-1 cursor-pointer select-none" title="Habilitar funcionalidade como ativa de fábrica para este perfil">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  disabled={isSavingEnabled || isSavingOptional || loading}
+                                  onChange={(event) => toggleDefault(type.id, feature.id, event.target.checked)}
+                                  className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:opacity-50"
+                                />
+                                <span className="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400">Ativa</span>
+                              </label>
+
+                              {/* Optional Checkbox */}
+                              <label className="flex items-center gap-1 cursor-pointer select-none" title="Permitir que o cliente ative ou desative este recurso a qualquer momento no app dele">
+                                <input
+                                  type="checkbox"
+                                  checked={optional}
+                                  disabled={isSavingEnabled || isSavingOptional || loading}
+                                  onChange={(event) => toggleOptional(type.id, feature.id, event.target.checked)}
+                                  className="h-3.5 w-3.5 rounded border-slate-300 dark:border-slate-700 text-violet-600 focus:ring-violet-500 cursor-pointer disabled:opacity-50"
+                                />
+                                <span className="text-[9px] font-black uppercase text-violet-500 dark:text-violet-400">Opt</span>
+                              </label>
+                            </div>
                           </td>
                         );
                       })}

@@ -16,7 +16,7 @@ const mapRow = (row: any): ClientOnboarding => ({
 export async function fetchClientOnboardings(): Promise<ClientOnboarding[]> {
   if (!supabase) {
     // Return mock data for when Supabase is not configured yet
-    const local = localStorage.getItem('varejoflow_client_onboardings_mock');
+    const local = localStorage.getItem('easyone_client_onboardings_mock');
     if (local) return JSON.parse(local).map((x: any) => ({ ...x, createdAt: new Date(x.createdAt) }));
     
     const mockData: ClientOnboarding[] = [
@@ -65,7 +65,7 @@ export async function fetchClientOnboardings(): Promise<ClientOnboarding[]> {
         createdAt: new Date(),
       }
     ];
-    localStorage.setItem('varejoflow_client_onboardings_mock', JSON.stringify(mockData));
+    localStorage.setItem('easyone_client_onboardings_mock', JSON.stringify(mockData));
     return mockData;
   }
 
@@ -87,7 +87,7 @@ export async function saveClientOnboarding(input: Omit<ClientOnboarding, 'id' | 
       id: 'mock-' + Math.random().toString(36).substring(2, 9),
       createdAt: new Date(),
     };
-    localStorage.setItem('varejoflow_client_onboardings_mock', JSON.stringify([newEntry, ...existing]));
+    localStorage.setItem('easyone_client_onboardings_mock', JSON.stringify([newEntry, ...existing]));
     return newEntry.id;
   }
 
@@ -113,7 +113,7 @@ export async function deleteClientOnboarding(id: string): Promise<void> {
   if (!supabase) {
     const existing = await fetchClientOnboardings();
     const filtered = existing.filter(x => x.id !== id);
-    localStorage.setItem('varejoflow_client_onboardings_mock', JSON.stringify(filtered));
+    localStorage.setItem('easyone_client_onboardings_mock', JSON.stringify(filtered));
     return;
   }
 

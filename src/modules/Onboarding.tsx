@@ -75,7 +75,7 @@ const BUSINESS_TYPES = [
   { id: 'varejo', label: 'Varejo (Moda & Lojas)', desc: 'Roupas, calçados, acessórios e presentes', icon: ShoppingBag, color: 'from-pink-500 to-rose-500' },
   { id: 'mercadinho', label: 'Mercadinho & Mercearia', desc: 'Alimentos, hortifruti, padaria e uso diário', icon: ShoppingCart, color: 'from-amber-500 to-orange-500' },
   { id: 'restaurante', label: 'Restaurante & Delivery', desc: 'Lanchonetes, cafés, bares e entrega de comida', icon: Utensils, color: 'from-red-500 to-orange-600' },
-  { id: 'servicos', label: 'Prestação de Serviços', desc: 'Assistência técnica, consultoria e reparos', icon: Wrench, color: 'from-blue-500 to-indigo-500' },
+  { id: 'servicos', label: 'Prestação de Serviços', desc: 'Professores particulares, personal trainers, assistência técnica e consultoria', icon: Wrench, color: 'from-blue-500 to-indigo-500' },
   { id: 'industria', label: 'Indústria & Confecção', desc: 'Produção de produtos e fabricação própria', icon: Factory, color: 'from-purple-500 to-violet-500' },
   { id: 'distribuidora', label: 'Distribuidora & Atacado', desc: 'Venda em volumes, logística e revenda', icon: Truck, color: 'from-teal-500 to-emerald-500' },
   { id: 'beleza', label: 'Salão & Estética', desc: 'Cabeleireiros, manicures, SPA e bem-estar', icon: Sparkles, color: 'from-cyan-500 to-blue-500' },
@@ -219,9 +219,9 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onComplete, onCancel }) 
   };
 
   const experienceOptions = [
-    { id: 'iniciante', label: 'Estou começando agora', desc: 'Nunca usei um ERP, quero simplicidade máxima', mascotText: 'Sem problemas! O ERP Pra Você foi feito exatamente para ser descomplicado. Vamos deixar tudo bem simples!' },
-    { id: 'intermediario', label: 'Já usei planilhas', desc: 'Quero migrar meus dados e ter mais controle profissional', mascotText: 'Excelente! Chega de planilhas confusas e fórmulas que quebram. Você vai amar a organização!' },
-    { id: 'avancado', label: 'Já usei outros ERPs', desc: 'Procuro agilidade, automação e recursos completos', mascotText: 'Perfeito! Você vai ver como o Varejoflow é rápido, intuitivo e completo para a sua escala de operação.' }
+    { id: 'iniciante', label: 'Estou começando agora', desc: 'Preciso de algo simples, fácil e rápido de aprender', mascotText: 'Ótima escolha! O EasyOne foi desenhado para ser tão fácil de usar quanto uma rede social.' },
+    { id: 'intermediario', label: 'Já tenho controle no papel/planilha', desc: 'Quero profissionalizar e ter mais informações', mascotText: 'Excelente! Vamos dar um upgrade na sua gestão com o EasyOne.' },
+    { id: 'avancado', label: 'Já usei outros ERPs', desc: 'Procuro agilidade, automação e recursos completos', mascotText: 'Perfeito! Você vai ver como o EasyOne é rápido, intuitivo e completo para a sua escala de operação.' }
   ];
 
   const goalOptions = [

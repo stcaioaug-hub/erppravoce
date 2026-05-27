@@ -41,13 +41,13 @@ export const Settings = () => {
   const [profileData, setProfileData] = useState({
     name: 'Carlos Oliveira',
     role: 'Administrador',
-    email: 'carlos@varejoflow.com.br',
+    email: 'carlos@easyone.com.br',
     phone: '(11) 98765-4321',
   });
 
   const [companyData, setCompanyData] = useState({
-    razaoSocial: 'VarejoFlow Tecnologia e Comércio Ltda',
-    nomeFantasia: 'VarejoFlow ERP',
+    razaoSocial: 'EasyOne Tecnologia e Comércio Ltda',
+    nomeFantasia: 'EasyOne ERP',
     cnpj: '12.345.678/0001-90',
     ie: '123.456.789.000',
     cep: '01234-567',
@@ -57,7 +57,7 @@ export const Settings = () => {
     cidade: 'São Paulo',
     uf: 'SP',
     phone: '(11) 3000-1234',
-    emailFaturamento: 'financeiro@varejoflow.com.br',
+    emailFaturamento: 'financeiro@easyone.com.br',
     regimeTributario: 'simples',
   });
 
@@ -96,7 +96,7 @@ export const Settings = () => {
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       {toastMessage && (
-        <div className="fixed bottom-8 right-8 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-bold text-sm animate-in fade-in slide-in-from-bottom-5 duration-300 border border-slate-800 dark:border-slate-200">
+        <div className="fixed bottom-[calc(var(--bottom-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 lg:bottom-8 lg:right-8 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-bold text-sm animate-in fade-in slide-in-from-bottom-5 duration-300 border border-slate-800 dark:border-slate-200">
           <Check size={20} className="text-emerald-400 dark:text-emerald-600" />
           {toastMessage}
         </div>
@@ -360,7 +360,7 @@ export const Settings = () => {
                     { id: 'emailSales', label: 'Vendas Realizadas', desc: 'Receba um e-mail a cada venda de alto valor concluída no PDV.' },
                     { id: 'emailLowStock', label: 'Alerta de Estoque Baixo', desc: 'Seja notificado quando produtos atingirem o estoque mínimo.' },
                     { id: 'emailDailyClosing', label: 'Fechamento de Caixa Diário', desc: 'Receba o resumo financeiro ao encerrar o dia.' },
-                    { id: 'emailSystemUpdates', label: 'Atualizações do Sistema', desc: 'Novidades, novas ferramentas e melhorias no VarejoFlow.' },
+                    { id: 'emailSystemUpdates', label: 'Atualizações do Sistema', desc: 'Novidades, novas ferramentas e melhorias no EasyOne.' },
                   ].map((item) => (
                     <label key={item.id} className="flex items-start gap-4 cursor-pointer p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-colors">
                       <input 
@@ -522,7 +522,7 @@ export const Settings = () => {
                   <div className="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-8 transition-colors animate-in fade-in duration-300">
                     <div className="p-4 bg-white rounded-xl shadow-md border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center">
                       <QrCode size={120} className="text-slate-900" />
-                      <span className="text-[10px] font-mono mt-2 text-slate-500">VAREJOFLOW-2FA</span>
+                      <span className="text-[10px] font-mono mt-2 text-slate-500">EASYONE-2FA</span>
                     </div>
                     <div className="space-y-3 text-center sm:text-left">
                       <h4 className="font-bold text-slate-800 dark:text-white transition-colors">Escaneie o QR Code</h4>
@@ -717,7 +717,7 @@ export const Settings = () => {
           {activeTab === 'onboarding' && (() => {
             let data: any = null;
             try {
-              const raw = localStorage.getItem('varejoflow_onboarding');
+              const raw = localStorage.getItem('easyone_onboarding');
               data = raw ? JSON.parse(raw) : null;
             } catch (e) {
               console.error('Erro ao ler onboarding de localStorage:', e);
@@ -852,7 +852,7 @@ export const Settings = () => {
                       </div>
                       <Button
                         onClick={() => {
-                          localStorage.removeItem('varejoflow_onboarding');
+                          localStorage.removeItem('easyone_onboarding');
                           showToast('Resetando preferências... Redirecionando.');
                           setTimeout(() => {
                             window.location.reload();
@@ -873,4 +873,3 @@ export const Settings = () => {
     </div>
   );
 };
-

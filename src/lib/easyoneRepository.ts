@@ -244,6 +244,47 @@ export async function deleteCustomer(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function createCustomer(input: Omit<Customer, 'id' | 'totalSpent' | 'lastPurchase'>): Promise<Customer> {
+  const client = requireClient();
+  const { data, error } = await client
+    .from('customers')
+    .insert({
+      name: input.name,
+      document: input.document,
+      email: input.email,
+      phone: input.phone,
+      address: input.address,
+      total_spent: 0,
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return mapCustomer(data);
+}
+
+export async function updateCustomer(id: string, input: Partial<Omit<Customer, 'id'>>): Promise<Customer> {
+  const client = requireClient();
+  const updateData: any = {};
+  if (input.name !== undefined) updateData.name = input.name;
+  if (input.document !== undefined) updateData.document = input.document;
+  if (input.email !== undefined) updateData.email = input.email;
+  if (input.phone !== undefined) updateData.phone = input.phone;
+  if (input.address !== undefined) updateData.address = input.address;
+  if (input.totalSpent !== undefined) updateData.total_spent = input.totalSpent;
+  if (input.lastPurchase !== undefined) updateData.last_purchase = input.lastPurchase?.toISOString() ?? null;
+
+  const { data, error } = await client
+    .from('customers')
+    .update(updateData)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return mapCustomer(data);
+}
+
 export async function deleteSupplier(id: string): Promise<void> {
   if (!supabase) return;
   const { error } = await supabase.from('suppliers').delete().eq('id', id);

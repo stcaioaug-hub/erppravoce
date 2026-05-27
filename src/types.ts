@@ -68,6 +68,26 @@ export interface Customer {
   lastPurchase?: Date;
 }
 
+export type StudioAppointmentStatus =
+  | 'pendente_aprovacao'
+  | 'aguardando'
+  | 'atendimento'
+  | 'concluido'
+  | 'cancelado';
+
+export interface StudioAppointment {
+  id: string;
+  date: string;
+  time: string;
+  clientName: string;
+  service: string;
+  price: number;
+  status: StudioAppointmentStatus;
+  phone?: string;
+  paymentMethod?: string;
+  additions?: Array<{ name: string; price: number }>;
+}
+
 export interface Supplier {
   id: string;
   name: string;

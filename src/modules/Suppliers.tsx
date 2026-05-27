@@ -8,7 +8,7 @@ import { Plus, Search, Truck, Mail, Phone, Tag, MoreVertical, Edit2, Trash2, Ale
 import { PageHeader, Button, Card, Input, Table, THead, TBody, TH, TD, TR, Badge, Modal } from '../components/ui';
 import { MOCK_SUPPLIERS } from '../data/mocks';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { fetchSuppliers, deleteSupplier } from '../lib/varejoflowRepository';
+import { fetchSuppliers, deleteSupplier } from '../lib/easyoneRepository';
 import { Supplier } from '../types';
 
 export const Suppliers = () => {

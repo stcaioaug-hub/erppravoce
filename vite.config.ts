@@ -12,13 +12,14 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
+        includeAssets: ['apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
         manifest: {
-          name: 'ERP pra Você',
-          short_name: 'ERP pra Você',
-          description: 'ERP pra Você System',
-          theme_color: '#ffffff',
-          background_color: '#ffffff',
+          name: 'EasyOne ERP',
+          short_name: 'EasyOne',
+          description: 'Sistema de gestão EasyOne',
+          lang: 'pt-BR',
+          theme_color: '#0d0f2a',
+          background_color: '#0d0f2a',
           display: 'standalone',
           icons: [
             {
@@ -32,7 +33,7 @@ export default defineConfig(({mode}) => {
               type: 'image/png'
             },
             {
-              src: 'pwa-512x512.png',
+              src: 'pwa-maskable-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable'

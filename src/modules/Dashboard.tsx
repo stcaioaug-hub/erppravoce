@@ -46,11 +46,15 @@ import {
 import { PageHeader, StatCard, Card, Badge, Button, Table, THead, TBody, TR, TH, TD } from '../components/ui';
 import { DASHBOARD_STATS, MOCK_SALES, MOCK_PRODUCTS } from '../data/mocks';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { fetchProducts, fetchSales } from '../lib/varejoflowRepository';
+import { fetchProducts, fetchSales } from '../lib/easyoneRepository';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { Product, Sale } from '../types';
 
-export const Dashboard = () => {
+interface DashboardProps {
+  onNavigate?: (module: string) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
   const [sales, setSales] = useState<Sale[]>(MOCK_SALES);
 
@@ -90,7 +94,7 @@ export const Dashboard = () => {
   // Carregar dados do Onboarding
   const onboardingData = (() => {
     try {
-      const raw = localStorage.getItem('varejoflow_onboarding');
+      const raw = localStorage.getItem('easyone_onboarding');
       return raw ? JSON.parse(raw) : null;
     } catch (e) {
       console.error('Erro ao processar dados de onboarding:', e);
@@ -319,6 +323,60 @@ export const Dashboard = () => {
     }
   };
 
+  const getCardDestination = (cardIndex: number): string => {
+    if (!businessType) {
+      if (cardIndex === 1) return 'financeiro';
+      if (cardIndex === 2) return 'vendas';
+      if (cardIndex === 3) return 'vendas';
+      return 'estoque';
+    }
+
+    switch (businessType) {
+      case 'varejo':
+        if (cardIndex === 1) return 'financeiro';
+        if (cardIndex === 2) return 'estoque';
+        if (cardIndex === 3) return 'vendas';
+        return 'estoque';
+      case 'mercadinho':
+        if (cardIndex === 1) return 'financeiro';
+        if (cardIndex === 2) return 'vendas';
+        if (cardIndex === 3) return 'estoque';
+        return 'estoque';
+      case 'restaurante':
+        if (cardIndex === 1) return 'financeiro';
+        if (cardIndex === 2) return 'pdv';
+        if (cardIndex === 3) return 'vendas';
+        return 'estoque';
+      case 'servicos':
+      case 'beleza':
+        if (cardIndex === 1) return 'financeiro';
+        if (cardIndex === 2) return 'pdv';
+        if (cardIndex === 3) return 'financeiro';
+        return 'clientes';
+      case 'industria':
+        if (cardIndex === 1) return 'financeiro';
+        if (cardIndex === 2) return 'estoque';
+        if (cardIndex === 3) return 'relatorios';
+        return 'estoque';
+      case 'distribuidora':
+        if (cardIndex === 1) return 'financeiro';
+        if (cardIndex === 2) return 'vendas';
+        if (cardIndex === 3) return 'estoque';
+        return 'financeiro';
+      default:
+        if (cardIndex === 1) return 'financeiro';
+        if (cardIndex === 2) return 'vendas';
+        if (cardIndex === 3) return 'vendas';
+        return 'estoque';
+    }
+  };
+
+  const getWidgetDestination = (): string => {
+    if (['varejo', 'mercadinho', 'restaurante', 'industria', 'distribuidora'].includes(businessType)) return 'estoque';
+    if (['servicos', 'beleza'].includes(businessType)) return 'financeiro';
+    return 'estoque';
+  };
+
   // Se houver configuração adaptativa ativa
   if (config) {
     const StatIcon1 = config.stat1.icon;
@@ -352,6 +410,7 @@ export const Dashboard = () => {
             icon={StatIcon1}
             trend={{ value: 8, positive: true }}
             color={config.stat1.color}
+            onClick={() => onNavigate?.(getCardDestination(1))}
           />
 
           {/* Stat Card 2 */}
@@ -361,6 +420,7 @@ export const Dashboard = () => {
             icon={StatIcon2}
             trend={{ value: 15, positive: true }}
             color={config.stat2.color}
+            onClick={() => onNavigate?.(getCardDestination(2))}
           />
 
           {/* Stat Card 3 */}
@@ -370,6 +430,7 @@ export const Dashboard = () => {
             icon={StatIcon3}
             trend={{ value: 3, positive: true }}
             color={config.stat3.color}
+            onClick={() => onNavigate?.(getCardDestination(3))}
           />
 
           {/* Stat Card 4 */}
@@ -378,10 +439,15 @@ export const Dashboard = () => {
             value={config.stat4.value} 
             icon={StatIcon4}
             color={config.stat4.color}
+            onClick={() => onNavigate?.(getCardDestination(4))}
           />
 
           {/* Main Chart Card (Large) */}
-          <Card className="lg:col-span-2 lg:row-span-2 bg-slate-900 rounded-3xl p-6 flex flex-col border-none shadow-xl shadow-slate-200">
+          <Card 
+            interactive={true}
+            onClick={() => onNavigate?.('relatorios')}
+            className="lg:col-span-2 lg:row-span-2 bg-slate-900 rounded-3xl p-6 flex flex-col border-none shadow-xl shadow-slate-200"
+          >
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h3 className="text-white font-bold tracking-tight">{config.chartTitle}</h3>
@@ -464,7 +530,11 @@ export const Dashboard = () => {
           </Card>
 
           {/* Business Type Specific Widget 1 */}
-          <Card className="p-6 flex flex-col justify-between overflow-hidden relative">
+          <Card 
+            interactive={true}
+            onClick={() => onNavigate?.(getWidgetDestination())}
+            className="p-6 flex flex-col justify-between overflow-hidden relative"
+          >
             <div className="relative z-10">
               <h3 className="text-slate-800 dark:text-slate-200 font-bold text-sm mb-4 flex items-center gap-2">
                 <AlertCircle size={16} className="text-amber-500" />
@@ -479,7 +549,13 @@ export const Dashboard = () => {
                 ))}
               </div>
             </div>
-            <button className="mt-auto text-xs font-bold text-blue-600 hover:underline text-left relative z-10 pt-4">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate?.(getWidgetDestination());
+              }}
+              className="mt-auto text-xs font-bold text-blue-600 hover:underline text-left relative z-10 pt-4"
+            >
               Gerenciar Detalhes
             </button>
             <div className="absolute -bottom-6 -right-6 text-slate-50 dark:text-slate-900/10 opacity-10 rotate-12">
@@ -488,7 +564,11 @@ export const Dashboard = () => {
           </Card>
 
           {/* Goal tracker widget */}
-          <Card className="p-6 flex flex-col justify-between">
+          <Card 
+            interactive={true}
+            onClick={() => onNavigate?.('business_vision')}
+            className="p-6 flex flex-col justify-between"
+          >
             <div>
               <h3 className="text-slate-800 dark:text-slate-200 font-bold text-sm mb-6">Progresso da Meta Trimestral</h3>
               <div className="space-y-6">
@@ -515,7 +595,12 @@ export const Dashboard = () => {
           <Card className="lg:col-span-4 overflow-hidden flex flex-col border-none shadow-md">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800/40 flex justify-between items-center bg-white dark:bg-slate-900/60">
               <h3 className="text-slate-800 dark:text-slate-200 font-bold text-sm">{config.tableTitle}</h3>
-              <button className="text-xs font-bold text-blue-600 hover:underline">Ver completo</button>
+              <button 
+                onClick={() => onNavigate?.('vendas')}
+                className="text-xs font-bold text-blue-600 hover:underline"
+              >
+                Ver completo
+              </button>
             </div>
             <Table className="bg-white dark:bg-slate-900/30">
               <THead>
@@ -570,6 +655,7 @@ export const Dashboard = () => {
           icon={TrendingUp}
           trend={{ value: 12, positive: true }}
           color="emerald"
+          onClick={() => onNavigate?.('financeiro')}
         />
 
         {/* Stat Card 2 */}
@@ -579,6 +665,7 @@ export const Dashboard = () => {
           icon={ShoppingCart}
           trend={{ value: 48, positive: true }} // Just using value as % for display
           color="blue"
+          onClick={() => onNavigate?.('vendas')}
         />
 
         {/* Stat Card 3 */}
@@ -588,6 +675,7 @@ export const Dashboard = () => {
           icon={Users}
           trend={{ value: 5, positive: false }}
           color="indigo"
+          onClick={() => onNavigate?.('vendas')}
         />
 
         {/* Stat Card 4 */}
@@ -596,10 +684,15 @@ export const Dashboard = () => {
           value={dashboardStats.lowStockItems} 
           icon={AlertCircle}
           color={dashboardStats.lowStockItems > 0 ? "red" : "indigo"}
+          onClick={() => onNavigate?.('estoque')}
         />
 
         {/* Main Chart Card (Large) */}
-        <Card className="lg:col-span-2 lg:row-span-2 bg-slate-900 rounded-3xl p-6 flex flex-col border-none shadow-xl shadow-slate-200">
+        <Card 
+          interactive={true}
+          onClick={() => onNavigate?.('relatorios')}
+          className="lg:col-span-2 lg:row-span-2 bg-slate-900 rounded-3xl p-6 flex flex-col border-none shadow-xl shadow-slate-200"
+        >
           <div className="flex justify-between items-center mb-8">
             <div>
               <h3 className="text-white font-bold tracking-tight">Performance de Vendas</h3>
@@ -655,7 +748,11 @@ export const Dashboard = () => {
         </Card>
 
         {/* Low Stock Alert */}
-        <Card className="p-6 flex flex-col justify-between overflow-hidden relative">
+        <Card 
+          interactive={true}
+          onClick={() => onNavigate?.('estoque')}
+          className="p-6 flex flex-col justify-between overflow-hidden relative"
+        >
           <div className="relative z-10">
             <h3 className="text-slate-800 font-bold text-sm mb-4 flex items-center gap-2">
               <AlertCircle size={16} className="text-amber-500" />
@@ -670,7 +767,13 @@ export const Dashboard = () => {
               ))}
             </div>
           </div>
-          <button className="mt-auto text-xs font-bold text-blue-600 hover:underline text-left relative z-10 pt-4">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onNavigate?.('estoque');
+            }}
+            className="mt-auto text-xs font-bold text-blue-600 hover:underline text-left relative z-10 pt-4"
+          >
             Gerenciar estoque
           </button>
           <div className="absolute -bottom-6 -right-6 text-slate-50 opacity-10 rotate-12">
@@ -679,7 +782,11 @@ export const Dashboard = () => {
         </Card>
 
         {/* Financial Summary */}
-        <Card className="p-6 flex flex-col justify-between">
+        <Card 
+          interactive={true}
+          onClick={() => onNavigate?.('financeiro')}
+          className="p-6 flex flex-col justify-between"
+        >
           <div>
             <h3 className="text-slate-800 font-bold text-sm mb-6">Fluxo de Caixa</h3>
             <div className="space-y-6">
@@ -710,7 +817,12 @@ export const Dashboard = () => {
         <Card className="lg:col-span-4 overflow-hidden flex flex-col border-none shadow-md">
           <div className="px-6 py-4 border-b border-slate-50 flex justify-between items-center bg-white">
             <h3 className="text-slate-800 font-bold text-sm">Últimas Vendas</h3>
-            <button className="text-xs font-bold text-blue-600 hover:underline">Ver relatório completo</button>
+            <button 
+              onClick={() => onNavigate?.('vendas')}
+              className="text-xs font-bold text-blue-600 hover:underline"
+            >
+              Ver relatório completo
+            </button>
           </div>
           <Table className="bg-white">
             <THead>

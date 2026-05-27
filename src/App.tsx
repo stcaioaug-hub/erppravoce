@@ -8,6 +8,7 @@ import { AppLayout } from './components/AppLayout';
 import { UserRoleSelection } from './components/UserRoleSelection';
 import { saveClientOnboarding } from './lib/clientOnboardingRepository';
 import { createClientAppProfileFromOnboarding, isModuleVisibleForClient, resolveClientFeatures } from './lib/featureCustomizationRepository';
+import { Logo } from './components/Logo';
 import { LogIn, Moon, Sun } from 'lucide-react';
 import { Button, Input, Card } from './components/ui';
 import { useTheme } from './contexts/ThemeContext';
@@ -31,6 +32,8 @@ const Onboarding = lazy(() => import('./modules/Onboarding').then((module) => ({
 const OnboardingInsights = lazy(() => import('./modules/OnboardingInsights').then((module) => ({ default: module.OnboardingInsights })));
 const ClientTypesAdmin = lazy(() => import('./modules/ClientTypesAdmin').then((module) => ({ default: module.ClientTypesAdmin })));
 const FeatureExplorer = lazy(() => import('./modules/FeatureExplorer').then((module) => ({ default: module.FeatureExplorer })));
+const Cabeleireiro = lazy(() => import('./modules/Cabeleireiro').then((module) => ({ default: module.Cabeleireiro })));
+const ClienteAgendamento = lazy(() => import('./modules/ClienteAgendamento').then((module) => ({ default: module.ClienteAgendamento })));
 
 const ModuleLoading = () => (
   <div className="flex min-h-[320px] items-center justify-center text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -41,11 +44,20 @@ const ModuleLoading = () => (
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentModule, setCurrentModule] = useState('dashboard');
+  const [studioFinishAppointmentId, setStudioFinishAppointmentId] = useState<string | null>(null);
   const [loginForm, setLoginForm] = useState({ email: 'admin@erppravoce.com.br', password: 'admin' });
-  const [userRole, setUserRole] = useState<'admin' | 'client' | 'business' | 'onboarding' | null>(null);
+  const [userRole, setUserRole] = useState<'admin' | 'client' | 'business' | 'onboarding' | 'hairdresser' | null>(null);
   const [clientFeatures, setClientFeatures] = useState<ResolvedFeature[] | null>(null);
   const [clientProfile, setClientProfile] = useState<ClientAppProfile | null>(null);
+  const [isClientBookingMode, setIsClientBookingMode] = useState(false);
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'agendar-cliente') {
+      setIsClientBookingMode(true);
+    }
+  }, []);
 
   const loadClientFeatureState = useCallback(async () => {
     if (userRole !== 'client') {
@@ -81,10 +93,58 @@ export default function App() {
     setIsAuthenticated(true);
   };
 
+  const openStudioSection = (section: 'agenda' | 'clientes' | 'simulador' | 'finalizar', appointmentId?: string) => {
+    const studioModules = {
+      agenda: 'cabeleireiro',
+      clientes: 'cabeleireiro_clientes',
+      simulador: 'cabeleireiro_simulador',
+      finalizar: 'cabeleireiro_finalizar',
+    };
+
+    setStudioFinishAppointmentId(section === 'finalizar' ? appointmentId ?? null : null);
+    setCurrentModule(studioModules[section]);
+  };
+
+  const handleNavigate = (module: string) => {
+    if (module !== 'cabeleireiro_finalizar') {
+      setStudioFinishAppointmentId(null);
+    }
+    if (userRole === 'hairdresser') {
+      if (module === 'clientes') {
+        setCurrentModule('cabeleireiro_clientes');
+        return;
+      }
+      if (module === 'finalizar') {
+        setCurrentModule('cabeleireiro_finalizar');
+        return;
+      }
+      if (module === 'cabeleireiro') {
+        setCurrentModule('cabeleireiro');
+        return;
+      }
+    }
+    setCurrentModule(module);
+  };
+
   const renderModule = () => {
     switch (currentModule) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onNavigate={handleNavigate} />;
+      case 'cabeleireiro':
+        return <Cabeleireiro section="agenda" onSectionChange={openStudioSection} />;
+      case 'cabeleireiro_clientes':
+        return <Cabeleireiro section="clientes" onSectionChange={openStudioSection} />;
+      case 'cabeleireiro_simulador':
+        return <Cabeleireiro section="simulador" onSectionChange={openStudioSection} />;
+      case 'cabeleireiro_finalizar':
+        return (
+          <Cabeleireiro
+            section="finalizar"
+            onSectionChange={openStudioSection}
+            finishAppointmentId={studioFinishAppointmentId}
+            onFinishAppointmentConsumed={() => setStudioFinishAppointmentId(null)}
+          />
+        );
       case 'pdv':
         return <PDV />;
       case 'produtos':
@@ -118,14 +178,22 @@ export default function App() {
       case 'configuracoes':
         return <Settings />;
       default:
-        return <Dashboard />;
+        return <Dashboard onNavigate={handleNavigate} />;
     }
   };
+
+  if (isClientBookingMode) {
+    return (
+      <Suspense fallback={<ModuleLoading />}>
+        <ClienteAgendamento />
+      </Suspense>
+    );
+  }
 
   if (!userRole) {
     return <UserRoleSelection onSelect={(role) => {
       setUserRole(role);
-      setCurrentModule(role === 'business' ? 'business_vision' : 'dashboard');
+      setCurrentModule(role === 'business' ? 'business_vision' : role === 'hairdresser' ? 'cabeleireiro' : 'dashboard');
       setIsAuthenticated(true);
     }} />;
   }
@@ -135,7 +203,7 @@ export default function App() {
       <Suspense fallback={<ModuleLoading />}>
         <Onboarding 
           onComplete={async (data) => {
-            localStorage.setItem('varejoflow_onboarding', JSON.stringify(data));
+            localStorage.setItem('easyone_onboarding', JSON.stringify(data));
             let onboardingId: string | null = null;
             try {
               onboardingId = await saveClientOnboarding(data);
@@ -175,18 +243,7 @@ export default function App() {
 
         <div className="w-full max-w-md space-y-8 animate-in fade-in zoom-in duration-500 relative z-10">
           <div className="text-center">
-            <div className="flex justify-center mb-6">
-              <svg viewBox="0 0 120 120" className="w-20 h-20 drop-shadow-xl transition-transform hover:scale-105 duration-500 mx-auto">
-                <path d="M 60 60 L 95 25" stroke="#ffb300" strokeWidth="26" strokeLinecap="round" />
-                <path d="M 25 95 L 60 60" stroke="#003882" strokeWidth="26" strokeLinecap="round" />
-                <rect x="80" y="10" width="30" height="30" rx="6" fill="#ffb300" />
-                <rect x="45" y="45" width="30" height="30" rx="6" fill="#00A0F0" />
-                <rect x="10" y="80" width="30" height="30" rx="6" fill="#003882" />
-              </svg>
-            </div>
-            <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight transition-colors">
-              <span className="text-[#003882] dark:text-[#458af0]">ERP</span> <span className="text-[#003882] dark:text-[#458af0] font-medium">pra Você</span>
-            </h3>
+            <Logo artwork size="xl" className="mx-auto mb-2 transition-transform hover:scale-105 duration-500" />
             <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm font-medium transition-colors">Gestão profissional para o seu negócio</p>
           </div>
 
@@ -233,7 +290,7 @@ export default function App() {
   return (
     <AppLayout 
       currentModule={currentModule} 
-      onNavigate={setCurrentModule} 
+      onNavigate={handleNavigate} 
       userRole={userRole}
       clientFeatures={clientFeatures}
       clientProfile={clientProfile}

@@ -1,17 +1,19 @@
 import React from 'react';
-import { Building2, User, ArrowRight, ShieldCheck, Sun, Moon, BriefcaseBusiness, Sparkles } from 'lucide-react';
+import { Building2, User, ArrowRight, ShieldCheck, Sun, Moon, BriefcaseBusiness, Sparkles, Scissors } from 'lucide-react';
 import { Card } from './ui';
 import { useTheme } from '../contexts/ThemeContext';
+import { Logo } from './Logo';
+import { StudioBrand } from './StudioBrand';
 
 interface UserRoleSelectionProps {
-  onSelect: (role: 'admin' | 'client' | 'business' | 'onboarding') => void;
+  onSelect: (role: 'admin' | 'client' | 'business' | 'onboarding' | 'hairdresser') => void;
 }
 
 export const UserRoleSelection: React.FC<UserRoleSelectionProps> = ({ onSelect }) => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-x-hidden transition-colors duration-300">
       {/* Theme Toggle Button */}
       <div className="absolute top-6 right-6 z-20">
         <button
@@ -27,29 +29,20 @@ export const UserRoleSelection: React.FC<UserRoleSelectionProps> = ({ onSelect }
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-700 relative z-10">
+      <div className="w-full max-w-7xl animate-in fade-in zoom-in duration-700 relative z-10">
         <div className="text-center mb-12">
-          <div className="flex justify-center mb-6">
-            <svg viewBox="0 0 120 120" className="w-28 h-28 drop-shadow-xl transition-transform hover:scale-105 duration-500 mx-auto">
-              {/* Bridges */}
-              <path d="M 60 60 L 95 25" stroke="#ffb300" strokeWidth="26" strokeLinecap="round" />
-              <path d="M 25 95 L 60 60" stroke="#003882" strokeWidth="26" strokeLinecap="round" />
-              
-              {/* Squares */}
-              <rect x="80" y="10" width="30" height="30" rx="6" fill="#ffb300" />
-              <rect x="45" y="45" width="30" height="30" rx="6" fill="#00A0F0" />
-              <rect x="10" y="80" width="30" height="30" rx="6" fill="#003882" />
-            </svg>
+          <div className="mb-6">
+            <Logo artwork size="xl" className="mx-auto transition-transform hover:scale-105 duration-500" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4 transition-colors">
-            Bem-vindo ao <span className="text-[#003882] dark:text-[#458af0]">ERP</span> <span className="text-[#003882] dark:text-[#458af0] font-medium">pra Você</span>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-500 dark:text-slate-400 tracking-tight mb-4 transition-colors">
+            Bem-vindo
           </h1>
           <p className="text-slate-600 dark:text-slate-400 text-lg max-w-xl mx-auto font-medium transition-colors">
             Selecione o seu perfil de acesso para continuarmos. A interface será adaptada para suas necessidades.
           </p>
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
           {/* Admin Card */}
           <button
             onClick={() => onSelect('admin')}
@@ -137,10 +130,30 @@ export const UserRoleSelection: React.FC<UserRoleSelectionProps> = ({ onSelect }
               Iniciar Onboarding Rápido <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
             </div>
           </button>
+
+          {/* Hairdresser Card */}
+          <button
+            onClick={() => onSelect('hairdresser')}
+            className="group relative text-left bg-white/80 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 rounded-3xl hover:bg-white dark:hover:bg-slate-800/80 hover:border-rose-500/50 dark:hover:border-rose-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-rose-500/10 hover:-translate-y-1"
+          >
+            <div className="absolute top-6 right-6 w-10 h-10 rounded-full bg-rose-500/10 text-rose-500 dark:text-rose-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Scissors size={20} />
+            </div>
+            <StudioBrand variant="mark" className="mb-6 h-14 w-14 transition-transform duration-300 group-hover:scale-105" />
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+              Leandro Della Riva
+            </h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6 transition-colors">
+              Estúdio de beleza. Gerencie a agenda de clientes do dia e acompanhe as projeções de faturamento semanal e mensal.
+            </p>
+            <div className="flex items-center text-xs font-semibold text-rose-600 dark:text-rose-500 group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors mt-auto">
+              Acessar painel do estúdio <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
         </div>
       </div>
       
-      <p className="absolute bottom-8 text-center text-slate-500 dark:text-slate-500 text-sm font-medium">
+      <p className="mt-10 pb-4 text-center text-slate-500 dark:text-slate-500 text-sm font-medium">
         Powered by TechFlow Solutions
       </p>
     </div>

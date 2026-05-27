@@ -32,7 +32,7 @@ import {
 } from '../components/ui';
 import { MOCK_PRODUCTS } from '../data/mocks';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { fetchProducts, deleteProduct } from '../lib/varejoflowRepository';
+import { fetchProducts, deleteProduct } from '../lib/easyoneRepository';
 import { formatCurrency, cn } from '../lib/utils';
 import { Product } from '../types';
 

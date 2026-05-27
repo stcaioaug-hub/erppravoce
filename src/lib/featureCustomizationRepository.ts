@@ -17,8 +17,8 @@ import {
   ResolvedFeature,
 } from '../types';
 
-const LOCAL_STATE_KEY = 'varejoflow_feature_customization';
-export const CURRENT_CLIENT_PROFILE_KEY = 'varejoflow_client_app_profile_id';
+const LOCAL_STATE_KEY = 'easyone_feature_customization';
+export const CURRENT_CLIENT_PROFILE_KEY = 'easyone_client_app_profile_id';
 
 interface LocalFeatureState {
   defaults: ClientTypeFeatureDefault[];
@@ -148,16 +148,19 @@ export async function updateClientTypeFeatureDefault(
   clientTypeId: ClientTypeId,
   featureId: string,
   enabled: boolean,
+  optional?: boolean,
 ): Promise<void> {
   const seed = CLIENT_TYPE_FEATURE_DEFAULTS.find(
     (item) => item.clientTypeId === clientTypeId && item.featureId === featureId,
   );
 
+  const finalOptional = optional !== undefined ? optional : (seed?.optional ?? false);
+
   if (!supabase) {
     const state = readLocalState();
     const nextDefaults = reconcileDefaults(state.defaults).map((item) => (
       item.clientTypeId === clientTypeId && item.featureId === featureId
-        ? { ...item, enabled }
+        ? { ...item, enabled, optional: finalOptional }
         : item
     ));
     writeLocalState({ ...state, defaults: nextDefaults });
@@ -170,7 +173,7 @@ export async function updateClientTypeFeatureDefault(
       client_type_id: clientTypeId,
       feature_id: featureId,
       enabled,
-      optional: seed?.optional ?? false,
+      optional: finalOptional,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'client_type_id,feature_id' });
 
@@ -317,7 +320,7 @@ export async function ensureCurrentClientProfile(): Promise<ClientAppProfile | n
   const existing = currentId ? profiles.find((profile) => profile.id === currentId) : null;
   if (existing) return existing;
 
-  const raw = localStorage.getItem('varejoflow_onboarding');
+  const raw = localStorage.getItem('easyone_onboarding');
   if (!raw) return null;
 
   try {

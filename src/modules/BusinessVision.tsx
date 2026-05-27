@@ -194,7 +194,7 @@ const metricDefinitions: Record<string, { meaning: string; tooltip: string }> = 
   },
   'Clientes pagos': {
     meaning: 'Assinantes ativos',
-    tooltip: 'Total de clientes que concluíram o período de teste e pagam a mensalidade recorrente do ERP Pra Você.',
+    tooltip: 'Total de clientes que concluíram o período de teste e pagam a mensalidade recorrente do EasyOne.',
   },
   'Próxima meta': {
     meaning: 'Objetivo de tração',
@@ -353,7 +353,7 @@ const SectionTitle = ({ title, subtitle }: { title: string; subtitle?: string })
 const MetricCard: React.FC<{ label: string; value: string | number }> = ({ label, value }) => {
   const def = metricDefinitions[label] || {
     meaning: 'Indicador estratégico',
-    tooltip: 'Métrica ou valor chave utilizado nas simulações e acompanhamento de metas do ERP Pra Você.',
+    tooltip: 'Métrica ou valor chave utilizado nas simulações e acompanhamento de metas do EasyOne.',
   };
 
   return (
@@ -399,7 +399,7 @@ const ChartCard = ({ title, children }: { title: string; children: React.ReactNo
 const CompactMetricCard: React.FC<{ label: string; value: string | number; icon?: any; color?: 'emerald' | 'blue' | 'indigo' | 'amber' | 'violet' | 'rose' }> = ({ label, value, icon: Icon, color = 'blue' }) => {
   const def = metricDefinitions[label] || {
     meaning: 'Indicador estratégico',
-    tooltip: 'Métrica ou valor chave utilizado nas simulações e acompanhamento de metas do ERP Pra Você.',
+    tooltip: 'Métrica ou valor chave utilizado nas simulações e acompanhamento de metas do EasyOne.',
   };
 
   const colorStyles = {
@@ -483,7 +483,7 @@ const wizardSuggestions: Record<string, { explanation: string; suggestions: stri
     ]
   },
   'Diferenciais': {
-    explanation: 'Por que o cliente escolheria o ERP Pra Você em vez da concorrência? O que torna seu atendimento ou tecnologia únicos no mercado?',
+    explanation: 'Por que o cliente escolheria o EasyOne em vez da concorrência? O que torna seu atendimento ou tecnologia únicos no mercado?',
     suggestions: [
       'Implantação próxima e assistida, linguagem simples sem termos contábeis complexos e precificação progressiva justa.',
       'Suporte humanizado via WhatsApp com resposta rápida e interface desenhada especificamente para telas de toque e celulares.',
@@ -840,10 +840,10 @@ export const BusinessVision = () => {
 
       <Card className="overflow-hidden">
         <div className="bg-slate-900 px-6 py-12 lg:px-12 text-white">
-          <Badge variant="blue" className="mb-5">ERP Pra Você</Badge>
+          <Badge variant="blue" className="mb-5">EasyOne</Badge>
           <h2 className="max-w-3xl text-3xl lg:text-5xl font-black tracking-tight">Controle seu comércio de forma simples, rápida e sem complicação.</h2>
           <p className="max-w-2xl mt-5 text-slate-300 leading-7">
-            O ERP Pra Você ajuda pequenos e médios comerciantes a controlar estoque, vendas, clientes e financeiro em um só lugar.
+            O EasyOne ajuda pequenos e médios comerciantes a controlar estoque, vendas, clientes e financeiro em um só lugar.
           </p>
           <Button className="mt-7" size="lg" onClick={() => { if(inFullscreen) setIsFullscreen(false); setActiveTab('overview'); }}>Quero conhecer</Button>
         </div>
@@ -934,7 +934,7 @@ export const BusinessVision = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-4">
           <div>
             <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Visão do meu Negócio</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Painel estratégico para acompanhar, simular e estruturar o crescimento do ERP Pra Você.</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Painel estratégico para acompanhar, simular e estruturar o crescimento do EasyOne.</p>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="success" onClick={() => setIsReportModalOpen(true)}>
@@ -966,7 +966,7 @@ export const BusinessVision = () => {
                       Visão Geral Imersiva do Negócio
                     </h2>
                     <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-medium">
-                      Apresente ou explore a estratégia completa do ERP Pra Você em uma experiência guiada, passo a passo e sem distrações. Ideal para reuniões com sócios, investidores ou para alinhamento estratégico da operação.
+                      Apresente ou explore a estratégia completa do EasyOne em uma experiência guiada, passo a passo e sem distrações. Ideal para reuniões com sócios, investidores ou para alinhamento estratégico da operação.
                     </p>
                     <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                       <Button
@@ -1084,7 +1084,7 @@ export const BusinessVision = () => {
                 <Card className="p-6">
                   <SectionTitle title="Resumo Executivo" subtitle="Leitura rápida para alinhar produto, caixa e validação comercial." />
                   <p className="mt-4 text-sm leading-7 text-slate-600 dark:text-slate-300">
-                    O ERP Pra Você deve crescer por validação progressiva: começar com protótipo local e clientes fundadores, evoluir para beta pago
+                    O EasyOne deve crescer por validação progressiva: começar com protótipo local e clientes fundadores, evoluir para beta pago
                     com suporte próximo e só então ampliar infraestrutura, marketing e operação. A primeira meta crítica é provar que 10 clientes pagam
                     pelo menos R$ 97/mês. A meta de tração mira 25 clientes com ticket médio de R$ 197, gerando cerca de R$ 4.925/mês de MRR.
                   </p>
@@ -1215,7 +1215,7 @@ export const BusinessVision = () => {
                 {/* Seção dos Cards do Plano de Negócio */}
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                    <SectionTitle title="Estrutura do Plano de Negócio" subtitle="Pilares estratégicos e operacionais do ERP Pra Você." />
+                    <SectionTitle title="Estrutura do Plano de Negócio" subtitle="Pilares estratégicos e operacionais do EasyOne." />
                     <Button variant="primary" onClick={() => { setWizardStep(0); setIsWizardOpen(true); }} className="shrink-0 font-bold shadow-md">
                       <Sparkles size={18} className="mr-2 text-amber-400 animate-pulse" /> Assistente Imersivo em Tela Cheia
                     </Button>
@@ -1934,7 +1934,7 @@ export const BusinessVision = () => {
                 </div>
                 <div>
                   <h3 className="font-black text-lg sm:text-xl tracking-tight text-white">Apresentação Executiva</h3>
-                  <p className="text-xs text-slate-400">Visão Geral Imersiva do ERP Pra Você</p>
+                  <p className="text-xs text-slate-400">Visão Geral Imersiva do EasyOne</p>
                 </div>
               </div>
               <div className="flex items-center gap-6">
@@ -1960,7 +1960,7 @@ export const BusinessVision = () => {
                 const stepsData = [
                   {
                     title: 'O Propósito & O Problema',
-                    subtitle: 'Por que o ERP Pra Você existe e qual dor resolvemos no mercado local.',
+                    subtitle: 'Por que o EasyOne existe e qual dor resolvemos no mercado local.',
                     tag: 'Pilar 1 • Missão',
                     content: (
                       <div className="space-y-6 text-slate-300 text-lg sm:text-xl leading-relaxed font-medium">
@@ -2245,7 +2245,7 @@ export const BusinessVision = () => {
           <div className="border-b pb-6">
             <div className="flex justify-between items-start">
               <div>
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">ERP Pra Você</h1>
+                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">EasyOne</h1>
                 <p className="text-sm font-bold text-slate-500 mt-1">Relatório Estratégico & Projeções de Crescimento</p>
               </div>
               <div className="text-right">
@@ -2293,13 +2293,13 @@ export const BusinessVision = () => {
             <div>
               <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">4. Resumo Executivo</h3>
               <p className="text-sm leading-6 text-slate-600 dark:text-slate-300 print:text-xs print:leading-5">
-                O ERP Pra Você deve crescer por validação progressiva: começar com protótipo local e clientes fundadores, evoluir para beta pago com suporte próximo e só então ampliar infraestrutura, marketing e operação. A primeira meta crítica é provar que 10 clientes pagam pelo menos R$ 97/mês. A meta de tração mira 25 clientes com ticket médio de R$ 197, gerando cerca de R$ 4.925/mês de MRR.
+                O EasyOne deve crescer por validação progressiva: começar com protótipo local e clientes fundadores, evoluir para beta pago com suporte próximo e só então ampliar infraestrutura, marketing e operação. A primeira meta crítica é provar que 10 clientes pagam pelo menos R$ 97/mês. A meta de tração mira 25 clientes com ticket médio de R$ 197, gerando cerca de R$ 4.925/mês de MRR.
               </p>
             </div>
           </div>
 
           <div className="print:block hidden pt-8 border-t text-center text-xs text-slate-400">
-            Documento confidencial gerado pelo sistema ERP Pra Você. Uso restrito para planejamento estratégico.
+            Documento confidencial gerado pelo sistema EasyOne. Uso restrito para planejamento estratégico.
           </div>
         </div>
       </Modal>

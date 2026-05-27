@@ -38,12 +38,12 @@ export const CLIENT_TYPE_ARCHETYPES: ClientTypeArchetype[] = [
   },
   {
     id: 'servicos',
-    label: 'Prestacao de Servicos',
-    shortLabel: 'Servicos',
+    label: 'Prestacao de Servicos & Aulas (Prof. Particular)',
+    shortLabel: 'Servicos & Aulas',
     subtitle: 'Agenda, OS, contratos e recorrencia',
-    description: 'Modelo para prestadores, professores, assistencias, consultorias e operacoes sob demanda.',
-    previewTitle: 'App de Servicos',
-    previewSubtitle: 'Clientes, agenda, ordens de servico, cobrancas e recorrencia.',
+    description: 'Modelo para prestadores, professores particulares, personal trainers, assistencias e consultorias.',
+    previewTitle: 'App de Servicos & Aulas (ex: Professor Particular)',
+    previewSubtitle: 'Alunos/clientes, agenda de aulas, ordens de servico, cobrancas e recorrencia.',
     iconName: 'Wrench',
   },
   {
